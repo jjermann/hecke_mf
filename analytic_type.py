@@ -48,8 +48,6 @@ class AnalyticTypeElement(LatticePosetElement):
              name += "Modular"
         elif self.parent()("cusp")  <= self:
              name += "Cusp"
-        elif self.parent()("mcusp") <= self:
-             name += "MCusp"
         else:
              name  = "Zero"
 
@@ -67,8 +65,6 @@ class AnalyticTypeElement(LatticePosetElement):
              name += "M"
         elif self.parent()("cusp")  <= self:
              name += "C"
-        elif self.parent()("mcusp") <= self:
-             name += "MC"
         else:
              name  = "Z"
 
@@ -86,8 +82,6 @@ class AnalyticTypeElement(LatticePosetElement):
              name += "modular"
         elif self.parent()("cusp")  <= self:
              name += "cuspidal"
-        elif self.parent()("mcusp") <= self:
-             name += "(modular) cuspidal"
         else:
              name  = "zero"
 
@@ -117,8 +111,8 @@ class AnalyticType(FiniteLatticePoset):
                 
     def __init__(self, *args, **options):
         # We (arbitrarily) choose to model by inclusion instead of restriction
-        P_elements = [ "mcusp", "cusp", "holo", "weak", "mero", "quasi"]
-        P_relations = [["mcusp", "cusp"], ["cusp", "holo"], ["holo", "weak"], ["weak", "mero"]]
+        P_elements = [ "cusp", "holo", "weak", "mero", "quasi"]
+        P_relations = [["cusp", "holo"], ["holo", "weak"], ["weak", "mero"]]
         
         self._base_poset = Poset([P_elements, P_relations], cover_relations=True, facade=False)
         L = self._base_poset.order_ideals_lattice()
