@@ -1,5 +1,5 @@
 r"""
-Functor construction for all spaces (artificial to make the coercion framework work)
+Functor construction for all spaces
 
 AUTHORS:
 
@@ -27,7 +27,31 @@ from sage.categories.rings                       import Rings
 
 from constructor                                 import FormsSpace, FormsRing
 
+
 def get_base_ring(ring, var_name="d"):
+    r"""
+    Return the base ring of the given ``ring``:
+
+    If ``ring`` is of the form ``FractionField(PolynomialRing(R,'d'))``:
+    Return ``R``.
+
+    If ``ring`` is of the form ``PolynomialRing(R,'d')``:
+    Return ``R``.
+    
+    Otherwise return ``ring``.
+
+    The base ring is used in the construction of the correponding
+    ``FormsRing`` or ``FormsSpace``. In particular in the construction
+    of holomorphic forms of degree (0, 1). For (binary)
+    operations a general ring element is considered (coerced to)
+    a (constant) holomorphic form of degree (0, 1)
+    whose construction should be based on the returned base ring
+    (and not on ``ring``!).
+
+    If ``var_name`` (default: "d") is specified then this variable
+    name is used for the polynomial ring.
+    """
+
     from sage.rings.fraction_field import is_FractionField
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 
@@ -41,12 +65,48 @@ def get_base_ring(ring, var_name="d"):
 
 
 class FormsSpaceFunctor(ConstructionFunctor):
+    r"""
+    Construction functor for forms spaces.
+
+    Note that in a special case the functor
+    constructs a forms ring instead of a forms
+    space. Namely when the base ring is not a
+    ``BaseFacade`` and (weight,ep) of ``self``
+    is not equal to (0,1).
+
+    This case does not appear naturally but
+    it occurs in the pushout construction
+    when trying to find a common parent
+    between a forms space and a ring which
+    is not a ``BaseFacade``.
+    """
+
     from analytic_type import AnalyticType
     AT = AnalyticType()
 
     rank = 10
 
     def __init__(self, analytic_type, group, k, ep):
+        r"""
+        Construction functor for the forms space
+        (or forms ring, see above) with
+        the given ``analytic_type``, ``group``,
+        weight ``k`` and multiplier ``ep``.
+
+        See :meth:`__call__` for a description of the functor.
+
+        INPUT:
+
+        - ``analytic_type``   - An element of ``AnalyticType()``. 
+        - ``group``           - A Hecke Triangle group.
+        - ``k``               - A rational number, the weight of the space.
+        - ``ep``              - ``1`` or ``-1``, the multiplier of the space.
+
+        OUTPUT:
+ 
+        The construction functor for the corresponding forms space/ring.
+        """
+
         Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
         from space import canonical_parameters
         (self._group, R, self._k, self._ep) = canonical_parameters(group, ZZ, k, ep)
@@ -54,6 +114,21 @@ class FormsSpaceFunctor(ConstructionFunctor):
         self._analytic_type = self.AT(analytic_type)
 
     def __call__(self, R):
+        r"""
+        If ``R`` is a ``BaseFacade(S)`` then return the corresponding
+        forms space with base ring ``get_base_ring(S)``.
+        
+        If not then ``R`` is considered to be part of the space of
+        constants with base ring ``get_base_ring(R)``:
+        
+        If in that case (k, ep) is equal to (0, 1) then the corresponding
+        (holomorphically) extended forms space with base ring
+        ``get_base_ring(R)`` is returned,
+        
+        Otherwise the corresponding (holomorphically) extended forms ring
+        with base ring ``get_base_ring(R)`` is returned.
+        """
+
         if (isinstance(R, BaseFacade)):
             R = get_base_ring(R._ring)
             return FormsSpace(self._analytic_type, self._group, R, self._k, self._ep)
@@ -67,9 +142,39 @@ class FormsSpaceFunctor(ConstructionFunctor):
                 return FormsRing(analytic_type, self._group, R, True)
 
     def __repr__(self):
+        r"""  
+        Return the string representation of ``self``.
+        """
+
         return "{}FormsFunctor(n={}, k={}, ep={})".format(self._analytic_type.analytic_space_name(), self._group.n, self._k, self._ep)
 
     def merge(self, other):
+        r"""
+        Return the merged functor of ``self`` and ``other``.
+
+        It is only possible to merge instances of
+        ``FormsSpaceFunctor`` and ``FormsRingFunctor`` and
+        only if they share the same group.
+
+        The analytic type of the merged functor is the extension
+        of the two analytic types of the functors.
+        The ``red_hom`` parameter of the merged functor
+        is the logical ``and`` of the two corresponding ``red_hom``
+        parameters (where a forms space is assumed to have it
+        set to ``True``).
+    
+        Two ``FormsSpaceFunctor`` with different (k,ep)
+        are merged to a corresponding ``FormsRingFunctor``.
+        Otherwise the corresponding (extended) ``FormsSpaceFunctor``
+        is returned.
+
+        A ``FormsSpaceFunctor`` and ``FormsRingFunctor``
+        are merged to a corresponding (extended) ``FormsRingFunctor``.
+
+        Two ``FormsRingFunctors`` are merged to the corresponding
+        (extended) ``FormsRingFunctor``.
+        """
+
         if (self == other):
             return self
         elif isinstance(other, FormsSpaceFunctor):
@@ -88,6 +193,10 @@ class FormsSpaceFunctor(ConstructionFunctor):
             return FormsRingFunctor(analytic_type, self._group, red_hom)
 
     def __cmp__(self, other):
+        r"""
+        Compare ``self`` and ``other``.
+        """
+
         if    ( type(self)          == type(other)\
             and self._group         == other._group\
             and self._analytic_type == other._analytic_type\
@@ -98,12 +207,37 @@ class FormsSpaceFunctor(ConstructionFunctor):
             return -1
     
 class FormsRingFunctor(ConstructionFunctor):
+    r"""
+    Construction functor for forms rings.
+    """
+
     from analytic_type import AnalyticType
     AT = AnalyticType()
 
     rank = 10
 
     def __init__(self, analytic_type, group, red_hom):
+        r"""
+        Construction functor for the forms ring
+        with the given ``analytic_type``, ``group``
+        and variable ``red_hom``
+
+        See :meth:`__call__` for a description of the functor.
+
+        INPUT:
+        
+                                                                                
+                                                                            
+        - ``analytic_type``   - An element of ``AnalyticType()``. 
+        - ``group``           - A Hecke Triangle group.
+        - ``red_hom``         - A boolean variable for the parameter ``red_hom``
+                                (also see ``FormsRing_abstract``).
+
+        OUTPUT:
+ 
+        The construction functor for the corresponding forms ring.
+        """
+
         Functor.__init__(self, Rings(), Rings())
         from graded_ring import canonical_parameters
         (self._group, R, red_hom) = canonical_parameters(group, ZZ, red_hom)
@@ -111,6 +245,17 @@ class FormsRingFunctor(ConstructionFunctor):
         self._analytic_type = self.AT(analytic_type)
 
     def __call__(self, R):
+        r"""
+        If ``R`` is a ``BaseFacade(S)`` then return the corresponding
+        forms ring with base ring ``get_base_ring(S)``.
+        
+        If not then ``R`` is considered to be part of the space of
+        constants with base ring ``get_base_ring(R)``:
+        
+        In that case the corresponding (holomorphically) extended forms ring
+        with base ring ``get_base_ring(R)```is returned.
+        """
+
         if (isinstance(R, BaseFacade)):
             R = get_base_ring(R._ring)
             return FormsRing(self._analytic_type, self._group, R, self._red_hom)
@@ -120,6 +265,10 @@ class FormsRingFunctor(ConstructionFunctor):
             return FormsRing(analytic_type, self._group, R, self._red_hom)
 
     def __repr__(self):
+        r"""  
+        Return the string representation of ``self``.
+        """
+
         if (self._red_hom):
             red_arg = ", red_hom=True"
         else:
@@ -127,6 +276,32 @@ class FormsRingFunctor(ConstructionFunctor):
         return "{}FormsRingFunctor(n={}{})".format(self._analytic_type.analytic_space_name(), self._group.n, red_arg)
 
     def merge(self, other):
+        r"""
+        Return the merged functor of ``self`` and ``other``.
+
+        It is only possible to merge instances of
+        ``FormsSpaceFunctor`` and ``FormsRingFunctor`` and
+        only if they share the same group.
+
+        The analytic type of the merged functor is the extension
+        of the two analytic types of the functors.
+        The ``red_hom`` parameter of the merged functor
+        is the logical ``and`` of the two corresponding ``red_hom``
+        parameters (where a forms space is assumed to have it
+        set to ``True``).
+    
+        Two ``FormsSpaceFunctor`` with different (k,ep)
+        are merged to a corresponding ``FormsRingFunctor``.
+        Otherwise the corresponding (extended) ``FormsSpaceFunctor``
+        is returned.
+
+        A ``FormsSpaceFunctor`` and ``FormsRingFunctor``
+        are merged to a corresponding (extended) ``FormsRingFunctor``.
+
+        Two ``FormsRingFunctors`` are merged to the corresponding
+        (extended) ``FormsRingFunctor``.
+        """
+
         if (self == other):
             return self
         elif isinstance(other, FormsSpaceFunctor):
@@ -143,6 +318,10 @@ class FormsRingFunctor(ConstructionFunctor):
             return FormsRingFunctor(analytic_type, self._group, red_hom)
 
     def __cmp__(self, other):
+        r"""
+        Compare ``self`` and ``other``.
+        """
+
         if    ( type(self)          == type(other)\
             and self._group         == other._group\
             and self._analytic_type == other._analytic_type\
@@ -154,10 +333,44 @@ class FormsRingFunctor(ConstructionFunctor):
 
 from sage.structure.unique_representation import UniqueRepresentation
 class BaseFacade(Parent, UniqueRepresentation):
+    r"""
+    BaseFacade of a ring.
+
+    This class is used to distinguish the construction of
+    constant elements (modular forms of weight 0) over the given ring
+    and the construction of ``FormsRing`` or ``FormsSpace``
+    based on the BaseFacade of the given ring.
+
+    If that distinction was not made then ring elements
+    couldn't be considered as constant modular forms
+    in e.g. binary operations. Instead the coercion model would
+    assume that the ring element lies in the common parent
+    of the ring element and e.g. a ``FormsSpace`` which
+    would give the ``FormsSpace`` over the ring. However
+    this is not correct, the ``FormsSpace`` might
+    (and probably will) not even contain the (constant)
+    ring element. Hence we use the ``BaseFacade`` to
+    distinguish the two cases.
+
+    Since the ``BaseFacade`` of a ring embedds into that ring
+    a common base (resp. a coercion) between the two (or even a
+    more general ring) can be found, namely the ring
+    (not the ``BaseFacade`` of it).
+    """
+
     def __init__(self, ring):
+        r"""
+        BaseFacade of ``ring`` (see above).
+        """
+
         Parent.__init__(self, facade=ring, category=Rings())
         self._ring = get_base_ring(ring)
         # The BaseFacade(R) coerces/embeds into R, used in pushout
         self.register_embedding(self.Hom(self._ring,Sets())(lambda x: x))
+
     def __repr__(self):
+        r"""  
+        Return the string representation of ``self``.
+        """
+
         return "BaseFacade({})".format(self._ring)

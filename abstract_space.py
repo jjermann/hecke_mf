@@ -27,15 +27,15 @@ from series_constructor import MFSeriesConstructor
 
 
 class FormsSpace_abstract(FormsRing_abstract):
-    """
-    Abstract space for (Hecke) forms.
+    r"""
+    Abstract (Hecke) forms space.
     """
     from element import FormsElement
     Element = FormsElement
 
     def __init__(self, group, base_ring, k, ep):
         r"""
-        Abstract space for (Hecke) modular forms.
+        Abstract (Hecke) forms space.
 
         INPUT:
 
@@ -48,7 +48,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         OUTPUT:
 
-        The corresponding abstract space of (Hecke) forms.
+        The corresponding abstract (Hecke) forms space.
         """
 
         from space import canonical_parameters
@@ -63,25 +63,35 @@ class FormsSpace_abstract(FormsRing_abstract):
         self._ambient_module = None
 
     def _repr_(self):
-        """
+        r"""
         Return the string representation of ``self``.
         """
+
         return "{}Forms(n={}, k={}, ep={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n, self._weight, self._ep, self._base_ring)
 
     def _latex_(self):
         r"""
         Return the LaTeX representation of ``self``.
         """
+
         from sage.misc.latex import latex
         return "{}_{{ n={} }}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._group.n, self._weight, self._ep, latex(self._base_ring))
 
     def __cmp__(self, other):
+        r"""
+        Compare ``self`` and ``right``.
+        """
+
         if (super(FormsSpace_abstract, self).__cmp__(other)==0 and self._weight==other._weight and self._ep==other._ep):
             return 0
         else:
             return -1
 
     def _element_constructor_(self,x):
+        r"""
+        Return ``x`` coerced into this forms space.
+        """
+
         from graded_ring_element import FormsRingElement
         if isinstance(x, FormsRingElement):
             x = x._rat
@@ -95,7 +105,12 @@ class FormsSpace_abstract(FormsRing_abstract):
                 return self.element_from_coordinates(x)
         x = (self.rat_field())(x)
         return self.element_class(self,x)
+
     def _coerce_map_from_(self,S):
+        r"""
+        Return whether or not there exists a coercion from ``S`` to ``self``.
+        """
+
         from space import ZeroForm
         if   (  isinstance(S, ZeroForm)):
             return True
@@ -113,26 +128,71 @@ class FormsSpace_abstract(FormsRing_abstract):
             return False
 
     def change_ring(self, new_base_ring):
+        r"""
+        Return the same space as ``self`` but over a new base ring ``new_base_ring``.
+        """
+
         return self.__class__.__base__(self.group(), new_base_ring, True, self.weight(), self.ep())
 
     def construction(self):
+        r"""
+        Return a functor that constructs ``self`` (used by the coercion machinery).
+
+        EXAMPLE:: 
+
+        sage: from space import QModularForms
+        sage: QModularForms(k=2).construction()
+        (QuasiModularFormsFunctor(n=3, k=2, ep=-1), BaseFacade(Integer Ring))
+        """
+
         from functors import FormsSpaceFunctor, BaseFacade
         return FormsSpaceFunctor(self._analytic_type, self._group, self._weight, self._ep), BaseFacade(self._base_ring)
 
     @cached_method
     def weight(self):
+        r"""
+        Return the weight of (elements of) ``self``.
+        """
+
         return self._weight
+
     @cached_method
     def ep(self):
+        r"""
+        Return the multiplier of (elements of) ``self``.
+        """
+
         return self._ep
+
     @cached_method
     def ambient_module(self):
+        r"""
+        Return the corresponding ambient free module of ``self`` if it exists.
+        """
+
         return self._ambient_module
+
     def element_from_coordinates(self, vec, basis=None):
+        r"""
+        If ``self`` has an ambient free module, then return the element of ``self``
+        corresponding to the given coordinate vector ``vec`` with respect to the basis
+        ``basis``. Otherwise raise an exception.
+
+        INPUT:
+
+        - ``vec``     - An element of ``self.ambient_module()`` (the coordinate vector).
+        - ``basis``   - A basis of ``self``. If ``basis`` is ``None`` (default), then
+                        ``self.gens()`` is taken.
+
+        OUTPUT:
+
+        An element of ``self`` corresponding to the coordinate vector ``vec``.
+        """
+
         if not self.ambient_module():
             raise Exception("No _ambient_module defined for {}".format(self))
         vec = self.ambient_module()(vec)
-        if basis==None:
+        if basis == None:
             basis = self.gens()
         # TODO: allow several ways to specify a basis, e.g. also a basis in the vector space?
         assert(len(basis) == len(vec))
@@ -141,10 +201,27 @@ class FormsSpace_abstract(FormsRing_abstract):
 
 
     def homogeneous_space(self, k, ep):
-        assert(k==self._weight and ep==self._ep)
-        return self
+        r"""
+        Since ``self`` already is a homogeneous component return ``self``
+        unless the degree differs in which case an Exception is raised.
+        """
+
+        if (k==self._weight and ep==self._ep):
+            return self
+        else:
+            raise Exception("{} already is homogeneous with degree ({}, {}) != ({}, {})!".format(self, self._weight, self._ep, k, ep))
 
     def weight_parameters(self):
+        r"""
+        Check whether ``self`` has a valid weight and multiplier.
+        If not then an exception is raised. Otherwise the two weight
+        paramters corresponding for the weight and multiplier of ``self``
+        are returned.
+
+        The weight parameters are e.g. used to calculate dimensions
+        or precisions of Fourier expansion.
+        """
+
         n = self._group.n
         k = self._weight
         ep = self._ep
@@ -159,6 +236,25 @@ class FormsSpace_abstract(FormsRing_abstract):
         return (l1,l2)
 
     def aut_factor(self,gamma,t):
+        r"""
+        The automorphy factor of ``self``.
+
+        For now it is only defined on the two basic generators of the
+        Hecke group of ``self`` and their inverses.
+
+        However, when determening the map which sends an element ``t``
+        of the upper half plane to the fundamental domain, the
+        function ``self.group().get_FD(t, self.aut_factor)`` can be used.
+        It returns the full automorphy factor of the transformation matrix
+        applied to ``t``.        
+
+        INPUT:
+
+        - ``gamma``   - An element of the group of ``self``. For now only
+                        the basic generators (and their inverses) are supported.
+        - ``t``       - An element of the upper half plane.
+        """
+
         if (gamma == self._group.T or gamma == self._group.T.inverse()):
             return 1
         elif (gamma == self._group.S or gamma == -self._group.S):
@@ -168,6 +264,15 @@ class FormsSpace_abstract(FormsRing_abstract):
 
     @cached_method
     def F_simple(self):
+        r"""
+        Return a (the most) simple normalized element of ``self`` corresponding to the weight
+        parameters ``l1=self._l1`` and ``l2=self._l2``. If the element does not lie in
+        ``self`` the type of its parent is extended accordingly.
+
+        The main part of the element is given by a power (``l1``) of ``F_inf``, up to a small
+        holomorphic correction factor.
+        """
+
         (x,y,z,d) = self.rat_field().gens()
 
         finf_pol = d*(x**self._group.n - y**2)
@@ -182,10 +287,40 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return new_space(rat)
 
-    def Faber_pol(self, m, fix_d=False, d_num_prec=ZZ(53)):
+    def Faber_pol(self, m, fix_d=False, d_num_prec=None):
+        r"""
+        Return the ``m``'th Faber polynomial of ``self``.
+
+        Namely a polynomial P(q) such that ``P(J_inv)*F_simple()``
+        has a Fourier expansion of the form ``q^(-m) + O(q^(self._l1))``.
+        ``d^(self._l1+m)*P(q)`` is a monic polynomial of degree ``self._l1 + m``.
+
+        The Faber polynomials are used to construct a basis of weakly holomorphic forms
+        and to recover such forms from their initial Fourier coefficients.
+
+        INPUT:
+
+        - ``m``            - An integer ``m >= -self._l1``.
+        - ``fix_d``        - ``True`` if the value of ``d`` should be
+                             (numerically) substituted for the coefficients
+                             of the polynomial (default: ``False``).
+        - ``d_num_prec``   - The numerical precision to be used for ``d``
+                             in case ``fix_d`` is ``True``.
+                             Default: ``None``, in which case the default
+                             numerical precision ``self.num_prec()`` is used.
+
+        OUTPUT:
+
+        The corresponding Faber polynomial P(q) with coefficients in ``self.coeff_ring()``
+        resp. a numerical ring in case ``fix_d`` is ``True``
+        (and the group of ``self`` is not arithmetic).
+        """
+
         m = ZZ(m)
         if (m < -self._l1):
             raise Exception("Invalid basis index: {}<{}!".format(m,-self._l1))
+        if (d_num_prec == None):
+            d_num_prec = self._num_prec
 
         prec          = 2*self._l1+m+1
         SC            = MFSeriesConstructor(self._group, self.base_ring(), prec,fix_d, d_num_prec)
@@ -214,12 +349,42 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return fab_pol.polynomial()
 
-    # For j_inv (normalized by Fourier coefficient)
     # very similar to Faber_pol: faber_pol(q)=Faber_pol(d*q)
-    def faber_pol(self, m, fix_d=False, d_num_prec=ZZ(53)):
+    def faber_pol(self, m, fix_d=False, d_num_prec=None):
+        r"""
+        Return the ``m``'th Faber polynomial of ``self``
+        with a different normalization based on ``j_inv``
+        instead of ``J_inv``.
+
+        Namely a polynomial p(q) such that ``p(j_inv)*F_simple()``
+        has a Fourier expansion of the form ``q^(-m) + O(q^(self._l1))``.
+        ``p(q)`` is a monic polynomial of degree ``self._l1 + m``.
+
+        The relation to ``Faber_pol`` is: ``faber_pol(q) = Faber_pol(d*q)``.
+
+        INPUT:
+
+        - ``m``            - An integer ``m >= -self._l1``.
+        - ``fix_d``        - ``True`` if the value of ``d`` should be
+                             (numerically) substituted for the coefficients
+                             of the polynomial (default: ``False``).
+        - ``d_num_prec``   - The numerical precision to be used for ``d``
+                             in case ``fix_d`` is ``True``.
+                             Default: ``None``, in which case the default
+                             numerical precision ``self.num_prec()`` is used.
+
+        OUTPUT:
+
+        The corresponding Faber polynomial p(q) with coefficients in ``self.coeff_ring()``
+        resp. a numerical ring in case ``fix_d`` is ``True``
+        (and the group of ``self`` is not arithmetic).
+        """
+
         m = ZZ(m)
         if (m < -self._l1):
             raise Exception("Invalid basis index: {}<{}!".format(m,-self._l1))
+        if (d_num_prec == None):
+            d_num_prec = self._num_prec
 
         prec          = 2*self._l1+m+1
         SC            = MFSeriesConstructor(self._group, self.base_ring(), prec,fix_d, d_num_prec)
@@ -249,6 +414,23 @@ class FormsSpace_abstract(FormsRing_abstract):
         return fab_pol.polynomial()
 
     def F_basis_pol(self, m):
+        r"""
+        Returns a polynomial corresponding to the basis
+        element of the correponding space of weakly holomorphic
+        forms of the same degree as ``self``. The basis element
+        is determined by the property that the Fourier expansion
+        is of the form ``q^(-m) + O(q^(self._l1))``.
+
+        INPUT:
+        
+        - ``m``            - An integer ``m >= -self._l1``.
+
+        OUTPUT:
+
+        A polynomial in ``x,y,z,d``, corresponding to ``F_rho, F_i, E2``
+        and the (possibly) transcendental parameter ``d``.
+        """
+
         (x,y,z,d) = self.rat_field().gens()
 
         n        = self._group.n
@@ -260,6 +442,25 @@ class FormsSpace_abstract(FormsRing_abstract):
         return rat
 
     def F_basis(self, m):
+        r"""
+        Returns a weakly holomorphic element of ``self``
+        (extended if necessarily) determined by the property that
+        the Fourier expansion is of the form is of the form
+        ``q^(-m) + O(q^(self._l1))``.
+
+        In particular for all ``m >= -self._l1`` these elements form
+        a basis of the space of weakly holomorphic modular forms
+        of the corresponding degree.
+
+        INPUT:
+        
+        - ``m``            - An integer ``m >= -self._l1``.
+
+        OUTPUT:
+
+        The corresponding element in (possibly an extension of) ``self``.
+        """
+
         if (m < 0):
             new_space = self.extend_type("cusp")
         elif (m == 0):
@@ -271,6 +472,24 @@ class FormsSpace_abstract(FormsRing_abstract):
 
     # TODO: This only works for weakly holomorphic modular forms!
     def construct_form(self, laurent_series):
+        r"""
+        Tries to construct an element of self with the given Fourier
+        expansion. The assumption is made that the specified Fourier
+        expansion corresponds to a weakly holomorphic modular form.
+
+        If the precision is too low to determine the
+        element an exception is raised.
+
+        INPUT:
+
+        - ``laurent_series``   - A Laurent or Power series.        
+
+        OUTPUT:
+
+        If possible: An element of self with the same initial
+        Fourier expansion as ``laurent_series``.
+        """
+
         if (laurent_series.prec() < self._l1+1):
             raise Exception('Insufficient precision!')
 
@@ -292,25 +511,65 @@ class FormsSpace_abstract(FormsRing_abstract):
     # DEFAULT METHODS (should be overwritten in concrete classes)
 
     def _an_element_(self):
+        r"""
+        Return an element of ``self``.
+        """
+
         # this seems ok, so might as well leave it as is for everything
         return self(ZZ(0))
         #return self.F_simple()
 
     @cached_method
     def dimension(self):
+        r"""
+        This method should be overloaded by subclasses.
+
+        Return the dimension of ``self``.
         """
-        Return the dimension of the space.
-        """
+
         return infinity
+ 
     def degree(self):
+        r"""
+        Return the degree of ``self``.
+        """
+
         return self.dimension()
+ 
     # where this makes sense, this should/must return the coordinate vector
     # in self._ambient_module with respect to self.gens()
     def coordinate_vector(self, v):
+        r"""
+        This method should be overloaded by subclasses.
+
+        Return the coordinate vector of the element ``v``
+        in ``self._ambient_module``` with respect to
+        ``self.gens()``.
+        
+        Note that elements use this method (from their parent)
+        to calculate their coordinates in the ambient module.
+        """
+
         raise NotImplementedError
+ 
     def gens(self):
+        r"""
+        This method should be overloaded by subclasses.
+
+        Return a basis of ``self``.
+        
+        Note that the coordinate vector of elements of ``self``
+        are with respect to this basis.
+        """
+
         raise NotImplementedError
+ 
     def gen(self, k=0):
+        r"""
+        Return the ``k``'th basis element of ``self``
+        if possible (default: ``k=0``).
+        """
+
         k = ZZ(k)
         if k>=0 and k < self.dimension():
             return self.gens()[k]

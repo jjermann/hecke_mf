@@ -34,17 +34,44 @@ from series_constructor import MFSeriesConstructor
 # (and class) of the parent is in some cases not
 # CommutativeAlgebras but Modules
 class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
+    r"""
+    Element of a FormsRing.
+    """
     from analytic_type import AnalyticType
     AT = AnalyticType()
 
     @staticmethod
     def __classcall__(cls, parent, rat):
+        r"""
+        Return a (cached) instance with canonical parameters.
+        """
+
         rat = parent.rat_field()(rat)
         # rat.reduce() <- maybe add this for the nonexact case
 
         return super(FormsRingElement,cls).__classcall__(cls, parent, rat)
 
     def __init__(self, parent, rat):
+        r"""
+        Element of a FormsRing ``parent`` corresponding to the rational
+        function ``rat`` evaluated at ``x=F_rho``, ``y=F_i``, ``z=E2``
+        and ``d`` by the formal parameter from ``parent.coeff_ring()``.
+
+        The functions ``F_rho, F_i, E2`` can be obtained from
+        ``self.parent().graded_ring()``.
+
+        INPUT:
+        - ``parent``  - An (non abstract) instance of ``FormsRing_abstract``.
+        - ``rat``     - A rational function in ``parent.rat_field()``, the
+                        fraction field of the polynomial ring in ``x,y,z,d``
+                        over the base ring of ``parent``.
+        
+        OUTPUT:
+
+        An element of ``parent``. If ``rat`` does not correspond to such
+        an element an exception is raised.
+        """
+
         self._rat = rat
         (elem, homo, self._weight, self._ep, self._analytic_type) = rational_type(rat, parent.hecke_n(), parent.base_ring())
 
@@ -72,67 +99,163 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         with localvars(self.parent()._pol_ring, "f_rho, f_i, E2, d"):
             latex_str = latex(self._rat)
         return latex_str
-    
+
     def group(self):
+        r"""
+        Return the (Hecke triangle) group of ``self.parent()``.
         """
-        Return the group for which self is a (Hecke) meromorphic modular form.
-        """
+
         return self.parent().group()
+
     def hecke_n(self):
+        r"""
+        Return the parameter ``n`` of the (Hecke triangle) group of ``self.parent()``.
         """
-        Return the n corresponding to the group of self.
-        """
+
         return self.parent().hecke_n()
+
     def base_ring(self):
+        r"""
+        Return base ring of ``self.parent()``.
         """
-        Return the base ring of self.
-        """
+
         return self.parent().base_ring()
+
     def coeff_ring(self):
+        r"""
+        Return coefficient ring of ``self``.
         """
-        Return the coefficient ring of self.
-        """
+
         return self.parent().coeff_ring()
+
     def rat(self):
+        r"""
+        Return the rational function representing ``self``.
         """
-        Return the rational function representing self.
-        """
+
         return self._rat
+
     def is_homogeneous(self):
+        r"""
+        Return whether ``self`` is homogeneous.
+        """
+
         return self._weight != None
+
     def weight(self):
+        r"""
+        Return whether weight of ``self``.
+        """
+
         return self._weight
+
     def ep(self):
+        r"""
+        Return whether multiplier of ``self``.
+        """
+
         return self._ep
+
     def degree(self):
+        r"""
+        Return the degree of ``self`` in the graded ring.
+        If ``self`` is not homogeneous, then ``(None, None)``
+        is returned.
+        """
+
         return (self._weight,self._ep)
+
     def is_modular(self):
+        r"""
+        Return whether ``self`` (resp. its homogeneous components)
+        transform like modular forms.
+        """
+
         return not (self.AT("quasi") <= self._analytic_type)
+
     def is_weakly_holomorphic(self):
+        r"""
+        Return whether ``self`` is weakly holomorphic
+        in the sense that: ``self`` has at most a power of ``f_inf``
+        in its denominator.
+        """
+
         return self.AT("weak", "quasi") >= self._analytic_type
+
     def is_holomorphic(self):
+        r"""
+        Return whether ``self`` is holomorphic
+        in the sense that the denominator of ``self``
+        is constant.
+        """
+
         return self.AT("holo", "quasi") >= self._analytic_type
+
     def is_cuspidal(self):
+        r"""
+        Return whether ``self`` is cuspidal
+        in the sense that ``self`` is holomorphic and the ``f_inf``
+        divides the numerator.
+        """
+
         return self.AT("cusp", "quasi") >= self._analytic_type
+
     def is_zero(self):
+        r"""
+        Return whether ``self`` is the zero function.
+        """
+
         return self.AT(["quasi"]) >= self._analytic_type
+
     def analytic_type(self):
+        r"""
+        Return the analytic type of ``self``.
+        """
+
         return self._analytic_type
 
     def numerator(self):
+        r"""
+        Return the numerator of ``self``.
+        I.e. the (properly reduced) new form corresponding to
+        the numerator of ``self.rat()``.
+        
+        Note that the parent of ``self`` might (probably will) change.
+        """
+
         res = self.parent().rat_field()(self._rat.numerator())
         # In general the numerator has a different weight than the original function...
         new_parent = self.parent().extend_type(ring=True).reduce_type(["holo", "quasi"])
         return new_parent(res)
+
     def denominator(self):
+        r"""
+        Return the denominator of ``self``.
+        I.e. the (properly reduced) new form corresponding to
+        the numerator of ``self.rat()``.
+        
+        Note that the parent of ``self`` might (probably will) change.
+        """
+
         res = self.parent().rat_field()(self._rat.denominator())
         # In general the denominator has a different weight than the original function...
         new_parent = self.parent().extend_type(ring=True).reduce_type(["holo", "quasi"])
         return new_parent(res)
+
     def _add_(self,other):
+        r"""
+        Return the sum of ``self`` and ``other``.
+        """
+
         return self.parent()(self._rat+other._rat)
+
     def _sub_(self,other):
+        r"""
+        Return the difference of ``self`` and ``other``.
+        """
+
         return self.parent()(self._rat-other._rat)
+
 #    def _rmul_(self,other):
 #        res = self.parent().rat_field()(self._rat*other)
 #        return self.parent()(res)
@@ -142,27 +265,107 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 #    def _rdiv_(self,other):
 #        res = self.parent().rat_field()(self._rat/other)
 #        return self.parent()(res)
+
     def _mul_(self,other):
+        r"""
+        Return the product of ``self`` and ``other``.
+
+        Note that the parent might (probably will) change.
+
+        If ``parent.has_reduce_hom() == True`` then
+        the result is reduced to be an element of
+        the corresponding forms space if possible.
+        
+        In particular this is the case if both ``self``
+        and ``other`` are (homogeneous) elements of a
+        forms space.
+        """
+
         res = self.parent().rat_field()(self._rat*other._rat)
         new_parent = self.parent().extend_type(ring=True)
         # The product of two homogeneous elements is homogeneous
         return new_parent(res).reduce()
+
     def _div_(self,other):
+        r"""
+        Return the division of ``self`` by ``other``.
+
+        Note that the parent might (probably will) change.
+
+        If ``parent.has_reduce_hom() == True`` then
+        the result is reduced to be an element of
+        the corresponding forms space if possible.
+        
+        In particular this is the case if both ``self``
+        and ``other`` are (homogeneous) elements of a
+        forms space.
+        """
+
         res = self.parent().rat_field()(self._rat/other._rat)
         new_parent = self.parent().extend_type("mero", ring=True)
         # The division of two homogeneous elements is homogeneous
         return new_parent(res).reduce()
+
     def sqrt(self):
+        r"""
+        Try to return the square root of ``self``.
+        I.e. the element corresponding to ``sqrt(self.rat())``.
+
+        Whether this works or not depends on whether
+        ``sqrt(self.rat())`` works and coerces into
+        ``self.parent().rat_field()``.
+
+        Note that the parent might (probably will) change.
+
+        If ``parent.has_reduce_hom() == True`` then
+        the result is reduced to be an element of
+        the corresponding forms space if possible.
+        
+        In particular this is the case if ``self``
+        is a (homogeneous) element of a forms space.
+        """
+
         res = self.parent().rat_field()(self._rat.sqrt())
         new_parent = self.parent().extend_type(ring=True)
         # The sqrt of a homogeneous element is homogeneous if it exists
         return self.parent()(res).reduce()
+
     #def __invert__(self,other):
     #    res = self.parent().rat_field()(1/self._rat)
     #    new_parent = self.parent().extend_type(ring=True, mero=True)
     #    return new_parent(res).reduce()
 
     def diff_op(self, op, new_parent=None):
+        r"""
+        Return the differential operator ``op`` applied to ``self``.
+        If ``parent.has_reduce_hom() == True`` then the result
+        is reduced to be an element of the corresponding forms
+        space if possible.
+
+        INPUT:
+
+        - ``op``           - An element of ``self.parent().diff_alg()``.
+                             I.e. an element of the algebra over ``QQ``
+                             of differential operators generated
+                             by ``X, Y, Z, dX, dY, DZ``, where e.g. ``X``
+                             corresponds to the multiplication by ``x``
+                             (resp. ``F_rho``) and ``dX`` corresponds to ``d/dx``.
+
+                             To expect a homogeneous result after applying
+                             the operator to a homogeneous element it should
+                             should be homogeneous operator (with respect
+                             to the the usual, special grading).
+
+        - ``new_parent``   - Try to convert the result to the specified
+                             ``new_parent``. If ``new_parent == None`` (default)
+                             then the parent is extended to a
+                             "quasi meromorphic" ring.
+                
+        OUTPUT:
+
+        The new element.
+        """
+
         (x,y,z,d) = self.parent().pol_ring().gens()
         (X,Y,Z,dX,dY,dZ) = self.parent().diff_alg().gens()
         L = op.monomials()
@@ -183,16 +386,52 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
     # note that this is qd/dq, resp 1/(2*pi*i)*d/dtau
     def derivative(self):
+        r"""
+        Return the derivative ``d/dq = 1/(2*pi*i) d/dtau`` of ``self``.
+
+        Note that the parent might (probably will) change.
+        In particular its analytic type will be extended
+        to contain "quasi".
+
+        If ``parent.has_reduce_hom() == True`` then
+        the result is reduced to be an element of
+        the corresponding forms space if possible.
+        
+        In particular this is the case if ``self``
+        is a (homogeneous) element of a forms space.
+        """
+
         return self.diff_op(self.parent()._derivative_op, self.parent().extend_type("quasi", ring=True))
+
     def serre_derivative(self):
+        r"""
+        Return the Serre derivative of ``self``.
+
+        Note that the parent might (probably will) change.
+        However a modular element is returned if ``self``
+        was already modular.
+
+        If ``parent.has_reduce_hom() == True`` then
+        the result is reduced to be an element of
+        the corresponding forms space if possible.
+        
+        In particular this is the case if ``self``
+        is a (homogeneous) element of a forms space.
+        """
         return self.diff_op(self.parent()._serre_derivative_op, self.parent().extend_type(ring=True))
 
-    #TODO: this only works for modular objects
     @cached_method
     def order_inf(self):
         """
-        Return the order at infinity of self.
+        Return the order at infinity of ``self``.
+
+        If ``self`` is homogeneous and modular then
+        only the rational function ``self.rat()`` is used.
+        Otherwise the Fourier expansion is used
+        (with increasing precision until the order
+        can be determined).
         """
+
         if self.is_zero():
             return infinity
 
@@ -247,46 +486,83 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             return (num_val-denom_val)
 
     def as_ring_element(self):
+        r"""
+        Coerce ``self`` into the graded ring of its parent.
+        """
+
         return self.parent().graded_ring()(self._rat)
 
     def reduce(self):
+        r"""
+        In case ``self.parent().has_reduce_hom() == True``
+        and ``self`` is homogeneous. The converted element
+        lying in the corresponding homogeneous_space is returned.
+        
+        Otherwise ``self`` is returned.
+        """
+
         if self.parent().has_reduce_hom() and self.is_homogeneous():
             return self.parent().homogeneous_space(self._weight, self._ep)(self._rat)
         else:
             return self
 
     def force_reduce(self):
+        r"""
+        If ``self`` is homogeneous. The converted element
+        lying in the corresponding homogeneous_space is returned.
+        
+        Otherwise ``self`` is returned.
+        """
+
         if self.is_homogeneous():
             return self.parent().homogeneous_space(self._weight, self._ep)(self._rat)
         else:
             return self
 
     def reduced_parent(self):
+        r"""
+        Return the space with the analytic type of ``self``.
+        If ``self`` is homogeneous the corresponding ``FormsSpace`` is returned.
+        
+        I.e. return the smallest known ambient space of ``self``.
+        """
+
         if self.is_homogeneous():
             return FormsSpace(self.analytic_type(), self.group(), self.base_ring(), self.weight(), self.ep())
         else:
             return FormsRing(self.analytic_type(), self.group(), self.base_ring(), self.parent().has_reduce_hom())
 
     def full_reduce(self):
+        r"""
+        Convert ``self`` into its reduced parent.
+        """
+
         return self.reduced_parent()(self._rat)
 
     #precision is actually acuracy, maybe add "real precision" meaning number of rel. coef
     @cached_method
     def q_expansion_cached(self, prec, fix_d, d_num_prec, fix_prec = False):
         """
-        Returns the Fourier expansion of self.
-        The output should have exactly the specified precision O(q^prec).
+        Returns the Fourier expansion of self (cached).
 
         INPUT:
 
-        - ``prec``        - The desired output precision O(q^prec)
-        - ``fix_d``       - ``False`` (default) or a value to substitute for d.
+        - ``prec``        - An integer, the desired output precision O(q^prec).
+
+        - ``fix_d``       - ``False`` or a value to substitute for d.
                             The base_ring will be changed accordingly (if possible).
                             If ``True`` is used then the numerical value of d
                             corresponding to n will be used.
                             If n = 3, 4, 6 the used value is exact.
-        - ``d_num_prec``  - ``53`` (default), the precision to be used if a
+                            Also see ``MFSeriesConstructor``.
+
+        - ``d_num_prec``  - An integer, namely the precision to be used if a
                             numerical value for d is substituted.
+
+        - ``fix_prec``    - If ``fix_prec`` is not ``False`` (default)
+                            then the precision of the ``MFSeriesConstructor`` is
+                            set such that the output has exactly the specified
+                            precision O(q^prec).
 
         OUTPUT:
 
@@ -323,6 +599,36 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         return (qexp + O(q**prec)).parent()(qexp)
 
     def q_expansion(self, prec = None, fix_d = False, d_num_prec = None, fix_prec = False):
+        """
+        Returns the Fourier expansion of self.
+
+        INPUT:
+
+        - ``prec``        - An integer, the desired output precision O(q^prec).
+                            Default: ``None`` in which case the default precision
+                            of ``self.parent()`` is used.
+
+        - ``fix_d``       - ``False`` (default) or a value to substitute for d.
+                            The base_ring will be changed accordingly (if possible).
+                            If ``True`` is used then the numerical value of d
+                            corresponding to n will be used.
+                            If n = 3, 4, 6 the used value is exact.
+                            Also see ``MFSeriesConstructor``.
+
+        - ``d_num_prec``  - The precision to be used if a numerical value for d is substituted.
+                            Default: ``None`` in which case the default
+                            numerical precision of ``self.parent()`` is used.
+
+        - ``fix_prec``    - If ``fix_prec`` is not ``False`` (default)
+                            then the precision of the ``MFSeriesConstructor`` is
+                            set such that the output has exactly the specified
+                            precision O(q^prec).
+
+        OUTPUT:
+
+        The Fourier expansion of self as a ``FormalPowerSeries`` or ``FormalLaurentSeries``.
+        """
+
         if prec == None:
             prec = self.parent()._prec
         if d_num_prec == None:
@@ -331,15 +637,24 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
     def q_expansion_fixed_d(self, prec = None, d_num_prec = None, fix_prec = False):
         """
-        Returns the Fourier expansion of ``self``.
+        Returns the Fourier expansion of self.
         The numerical (or exact) value for d is substituted.
-        The output should have exactly the specified precision O(q^prec).
+
 
         INPUT:
 
-        - ``prec``        - The desired output precision O(q^prec)
-        - ``d_num_prec``  - ``53`` (default), the precision to be used
-                            for the substituted d value.
+        - ``prec``        - An integer, the desired output precision O(q^prec).
+                            Default: ``None`` in which case the default precision
+                            of ``self.parent()`` is used.
+
+        - ``d_num_prec``  - The precision to be used if a numerical value for d is substituted.
+                            Default: ``None`` in which case the default
+                            numerical precision of ``self.parent()`` is used.
+
+        - ``fix_prec``    - If ``fix_prec`` is not ``False`` (default)
+                            then the precision of the ``MFSeriesConstructor`` is
+                            set such that the output has exactly the specified
+                            precision O(q^prec).
 
         OUTPUT:
 
@@ -347,7 +662,93 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         """
         return self.q_expansion(prec, True, d_num_prec, fix_prec)
 
-    def __call__(self, tau, prec = ZZ(10), num_prec = ZZ(53)):
+    def __call__(self, tau, prec = None, num_prec = None):
+        r"""
+        Try too return ``self`` evaluated at a point ``tau``
+        in the upper half plane, where ``self`` is interpreted
+        as a function in ``tau``, where ``q=exp(2*pi*i*tau)``.
+        
+        Note that this interpretation might not make sense
+        (and fail) for certain (many) choices of
+        (``base_ring``, ``tau.parent()``).
+
+        To obtain a precise and fast result the parameters
+        ``prec`` and ``num_prec`` both have to be considered/balanced.
+        A high ``prec`` value is usually quite costly.
+
+        INPUT:
+        
+        - ``tau``        - ``infinity`` or an element of the upper
+                           half plane. E.g. with parent ``AA`` or ``CC``.
+
+        - ``prec``       - An integer, namely the precision used for the
+                           Fourier expansion. If ``prec == None`` (default)
+                           then the default precision of ``self.parent()``
+                           is used.
+                      
+        - ``num_prec``   - An integer, namely the minimal numerical precision
+                           used for ``tau`` and ``d``. If `num_prec == None`
+                           (default) then the default numerical precision of
+                           ``self.parent()`` is used.
+
+        OUTPUT:
+
+        The (numerical) evaluated function value.
+
+
+        ALGORITHM:
+
+        #. If (tau == infinity):
+           Return ``infinity`` unless the analytic type of
+           ``self`` is at most ``holomorphic`` in which
+           case the Fourier expansion (with precision ``1``)
+           is evaluated at ``zero``.
+
+        #. Else if ``self`` is homogeneous and modular:
+        
+           Determine the matrix ``A`` which sends ``tau``
+           to ``w`` in the fundamental domain, together
+           with ``aut_factor(A,w)``.
+           
+           Note: These values are determined by the method
+           ``get_FD(tau, aut_factor)`` from ``self.group()``,
+           where ``aut_factor = self.parent().aut_factor``
+           (which is only defined on the basic generators).
+
+           Because of the (modular) transformation property
+           of ``self`` the evaluation at ``tau`` is given by
+           the evaluation at ``w`` multiplied by ``aut_factor(A,w)``.
+
+           The evaluation at ``w`` is calculated by
+           evaluating the truncated Fourier expansion of
+           self at ``q(w)``.
+           
+           Note that this is much faster and more precise
+           than a direct evaluation at ``tau``.
+
+        #. Else if ``self`` is exactly ``E2``:
+           The same procedure as before is applied (with
+           the aut_factor from the corresponding modular
+           space). Except that at the end a correction
+           term for the quasimodular form ``E2`` of the form 
+           ``4*lambda/(2*pi*i)*n/(n-2) * c*(c*w + d)``
+           has to be added, where ``lambda = 2*cos(pi/n)``
+           and ``c,d`` are the lower entries of the matrix
+           ``A``.
+
+        #. Else:
+           Evaluate ``F_rho, F_i, E2`` at ``tau``
+           using the above procedures. Substitute
+           ``x=F_rho(tau), y=F_i(tau), z=E2(tau)``
+           and the numerical value of ``d`` for ``d``
+           in ``self.rat()``.
+        """
+
+        if (prec == None):
+            prec = self.parent().default_prec()
+        if (num_prec == None):
+            num_prec = self.parent().default_num_prec()
+    
         if (tau==infinity):
             if (self.AT("cusp") >= self.analytic_type()):
                 return ZZ(0)
@@ -355,6 +756,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                 return self.q_expansion(prec=1)[0]
             else:
                 return infinity
+
         num_prec = max(\
             ZZ(getattr(tau,'prec',lambda: num_prec)()),\
             num_prec\

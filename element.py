@@ -54,6 +54,7 @@ class FormsElement(FormsRingElement):
         """
         Return the string representation of self.
         """
+
         n=self.hecke_n()
 
         # For now the series constructor doesn't behave well for non exact bases... :(
@@ -66,8 +67,23 @@ class FormsElement(FormsRingElement):
         r"""
         Return the LaTeX representation of ``self``.
         """
+
         return super(FormsElement, self)._latex_()
 
     def coordinate_vector(self):
+        r"""
+        Return the coordinate vector of ``self`` with
+        respect to ``self.parent().gens()``.
+
+        The returned coordinate vector is an element
+        of ``self.parent().ambient_module()``.        
+        
+        This uses the the corresponding function of the
+        parent. If the parent has not defined a coordinate
+        vector function or an ambient module for coordinate
+        vectors then an exception is raised by the parent
+        (default implementation).
+        """
+
         return self.parent().coordinate_vector(self)
         

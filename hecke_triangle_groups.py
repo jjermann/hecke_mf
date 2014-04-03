@@ -32,6 +32,12 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
+    r"""
+    Hecke triangle group (2, n, infinity).
+
+    This is a stub implementation.
+    """
+
 #class HeckeTriangleGroup(MatrixSpace):
 #    @staticmethod
 #    def __classcall__(self,n):
@@ -39,6 +45,20 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 #
 #    Element=HeckeTriangleGroupElement
     def __init__(self,n):
+        r"""
+        Hecke triangle group (2, n, infinity).
+        Namely the von Dyck group corresponding to the triangle group
+        with angles (pi/2, pi/n, 0).
+
+        INPUT:
+
+        - ``n``   - ``infinity`` or an integer greater or equal to ``3``.
+
+        OUTPUT:
+
+        The Hecke triangle group for the given parameter ``n``.
+        """
+
         if (n==infinity):
             self.n               = infinity
         else:
@@ -63,6 +83,14 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 #        return HeckeTriangleGroupElement
 
     def dvalue(self):
+        #TODO: Be more precise (transfinite diameter of what exactly)
+        #TODO: Is d or 1/d the transfinite diameter?
+        r"""
+        Return the numerical (or exact in case n=3, 4, 6)
+        value of the transfinite diameter (or capacity)
+        of ``self``.
+        """
+
         n=self.n
         if (n==3):
             return ZZ(1)/ZZ(2**6*3**3)
@@ -79,6 +107,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         r"""
         Return the string representation of ``self``.
         """
+
         return "Hecke triangle group for n = {}".format(self.n)
 
     def _latex_(self):
@@ -91,6 +120,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: latex(a)
             \Gamma^{(5)}
         """
+
         return '\\Gamma^{(%s)}'%(latex(self.n))
 
     def is_arithmetic(self):
@@ -104,6 +134,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(5).is_arithmetic()
             False
         """
+
         if (self.n in [ZZ(3),ZZ(4),ZZ(6),infinity]):
             return True
         else:
