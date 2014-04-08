@@ -127,7 +127,7 @@ class FormsRing_abstract(Parent):
 
     def _element_constructor_(self, x):
         r"""
-        Return ``x`` coerced into this forms ring.
+        Return ``x`` coerced/converted into this forms ring.
         """
 
         from graded_ring_element import FormsRingElement
@@ -148,6 +148,7 @@ class FormsRing_abstract(Parent):
             and self._analytic_type >= S._analytic_type\
             and self.base_ring().has_coerce_map_from(S.base_ring()) ):
                 return True
+        # TODO: This case never occurs: remove it?
         elif isinstance(S, FormsSpace_abstract):
             return self._coerce_map_from_(S.graded_ring())
         elif (self.AT("holo") <= self._analytic_type) and (self.coeff_ring().has_coerce_map_from(S)):
@@ -260,11 +261,12 @@ class FormsRing_abstract(Parent):
         INPUT:
         
         - ``analytic_type``   - An ``AnalyticType`` or something which coerces into it (default: ``None``).
-        - ``ring``            - Whether to extend to a graded ring (default: ``False``).
+        - ``degree``          - ``None`` (default) or the degree of the homogeneous component to which
+                                ``self`` should be reduced.
 
         OUTPUT:
         
-        The new extended space.        
+        The new reduced space.
         """
 
         if analytic_type == None:

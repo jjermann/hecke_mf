@@ -25,7 +25,7 @@ from sage.structure.parent                       import Parent
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.rings                       import Rings
 
-from constructor                                 import FormsSpace, FormsRing
+from constructor                                 import FormsSubSpace, FormsSpace, FormsRing
 
 
 def get_base_ring(ring, var_name="d"):
@@ -62,6 +62,168 @@ def get_base_ring(ring, var_name="d"):
         base_ring = base_ring.base()
 
     return base_ring
+
+
+class FormsSubSpaceFunctor(ConstructionFunctor):
+    r"""
+    Construction functor for forms sub spaces.
+
+    Note that when the base ring is not a
+    ``BaseFacade`` then the functor constructs
+    a forms space or ring and not a forms subspace.
+
+    This case occurs in the pushout constructions.
+    """
+
+    from analytic_type import AnalyticType
+    AT = AnalyticType()
+
+    rank = 10
+
+    def __init__(self, analytic_type, group, k, ep, basis):
+        r"""
+        Construction functor for the forms sub space
+        for the given ``basis`` inside the ambient space
+        which is determined by the given ``analytic_type``,
+        ``group``, weight ``k`` and multiplier ``ep``.
+
+        See :meth:`__call__` for a description of the functor.
+
+        INPUT:
+
+        - ``analytic_type``   - An element of ``AnalyticType()``.
+        - ``group``           - A Hecke Triangle group.
+        - ``k``               - A rational number, the weight of the space.
+        - ``ep``              - ``1`` or ``-1``, the multiplier of the space.
+        - ``basis``           - A list of elements of a corresponding
+                                ambient space over some base ring.
+
+        OUTPUT:
+ 
+        The construction functor for the corresponding forms sub space.
+        """
+
+        Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
+        from space import canonical_parameters
+        (self._group, R, self._k, self._ep) = canonical_parameters(group, ZZ, k, ep)
+
+        self._analytic_type = self.AT(analytic_type)
+        self._basis = basis
+        #self._basis_ring = 
+        #on call check if there is a coercion from self._basis_ring to R
+
+    def __call__(self, R):
+        r"""
+        If ``R`` is a ``BaseFacade(S)`` then return the corresponding
+        forms subspace with base ring ``get_base_ring(S)``.
+        For this it is required that the base ring of the basis coerces
+        into the new base ring.
+        
+        If not then the corresponding (possibly extended) ambient forms
+        space or ring is constructed.
+        """
+
+        if (isinstance(R, BaseFacade)):
+            R = get_base_ring(R._ring)
+            return FormsSubSpace(self._analytic_type, self._group, R, self._k, self._ep, self._basis)
+        else:
+            R = get_base_ring(R)
+            analytic_type = self._analytic_type.extend_by("holo")
+
+            if (self._k == 0 and self._ep == 1):
+                return FormsSpace(analytic_type, self._group, R, QQ(0), ZZ(1))
+            else:
+                return FormsRing(analytic_type, self._group, R, True)
+
+    def __repr__(self):
+        r"""  
+        Return the string representation of ``self``.
+        """
+
+        return "FormsSubSpaceFunctor for the basis {}".format(self._basis)
+
+    def merge(self, other):
+        r"""
+        Return the merged functor of ``self`` and ``other``.
+
+        It is only possible to merge instances of
+        ``FormsSubSpaceFunctor``, ``FormsSpaceFunctor`` and
+        ``FormsRingFunctor``. Also only if they share the same group.
+
+        The analytic type of the merged functor is the extension
+        of the two analytic types of the functors.
+        The ``red_hom`` parameter of the merged functor
+        is the logical ``and`` of the two corresponding ``red_hom``
+        parameters (where a forms space is assumed to have it
+        set to ``True``).
+    
+        Two ``FormsSubSpaceFunctor`` are merged to one with
+        a united basis and analytic type in case the weight and
+        multiplier agree. Otherwise the corresponding (extended)
+        ``FormsSpaceFunctor`` is returned.
+        
+        If only one ``FormsSubSpaceFunctor`` is involved then
+        it is treated like a ``FormsSpaceFunctor`` for the ambient space.
+ 
+        Two ``FormsSpaceFunctor`` with different (k,ep)
+        are merged to a corresponding ``FormsRingFunctor``.
+        Otherwise the corresponding (extended) ``FormsSpaceFunctor``
+        is returned.
+
+        A ``FormsSpaceFunctor`` and ``FormsRingFunctor``
+        are merged to a corresponding (extended) ``FormsRingFunctor``.
+
+        Two ``FormsRingFunctors`` are merged to the corresponding
+        (extended) ``FormsRingFunctor``.
+        """
+
+        if (self == other):
+            return self
+        elif isinstance(other, FormsSubSpaceFunctor):
+            if not (self._group == other._group):
+                return None
+            analytic_type = self._analytic_type + other._analytic_type
+            if (self._k == other._k) and (self._ep == other._ep):
+                if (self._basis == other._basis):
+                    basis = self._basis
+                    return FormsSubSpaceFunctor(analytic_type, self._group, self._k, self._ep, basis)
+                else:
+                    #TODO: Or combine the basis to a new basis (which one?)
+                    #basis = self._basis + other._basis
+                    #return FormsSubSpaceFunctor(analytic_type, self._group, self._k, self._ep, basis)
+                    return FormsSpaceFunctor(analytic_type, self._group, self._k, self._ep)
+            else:
+                return FormsRingFunctor(analytic_type, self._group, True)
+        elif isinstance(other, FormsSpaceFunctor):
+            if not (self._group == other._group):
+                return None
+            analytic_type = self._analytic_type + other._analytic_type
+            if (self._k == other._k) and (self._ep == other._ep):
+                return FormsSpaceFunctor(analytic_type, self._group, self._k, self._ep)
+            else:
+                return FormsRingFunctor(analytic_type, self._group, True)
+        elif isinstance(other, FormsRingFunctor):
+            if not (self._group == other._group):
+                return None
+            red_hom = other._red_hom
+            analytic_type = self._analytic_type + other._analytic_type
+            return FormsRingFunctor(analytic_type, self._group, red_hom)
+
+    def __cmp__(self, other):
+        r"""
+        Compare ``self`` and ``other``.
+        """
+
+        if    ( type(self)          == type(other)\
+            and self._group         == other._group\
+            and self._analytic_type == other._analytic_type\
+            and self._k             == other._k\
+            and self._ep            == other._ep\
+            and self._basis         == other._basis ):
+                return 0
+        else:
+            return -1
+    
 
 
 class FormsSpaceFunctor(ConstructionFunctor):
@@ -153,8 +315,8 @@ class FormsSpaceFunctor(ConstructionFunctor):
         Return the merged functor of ``self`` and ``other``.
 
         It is only possible to merge instances of
-        ``FormsSpaceFunctor`` and ``FormsRingFunctor`` and
-        only if they share the same group.
+        ``FormsSubSpaceFunctor``, ``FormsSpaceFunctor`` and
+        ``FormsRingFunctor``. Also only if they share the same group.
 
         The analytic type of the merged functor is the extension
         of the two analytic types of the functors.
@@ -163,6 +325,14 @@ class FormsSpaceFunctor(ConstructionFunctor):
         parameters (where a forms space is assumed to have it
         set to ``True``).
     
+        Two ``FormsSubSpaceFunctor`` are merged to one with
+        a united basis and analytic type in case the weight and
+        multiplier agree. Otherwise the corresponding (extended)
+        ``FormsSpaceFunctor`` is returned.
+        
+        If only one ``FormsSubSpaceFunctor`` is involved then
+        it is treated like a ``FormsSpaceFunctor`` for the ambient space.
+
         Two ``FormsSpaceFunctor`` with different (k,ep)
         are merged to a corresponding ``FormsRingFunctor``.
         Otherwise the corresponding (extended) ``FormsSpaceFunctor``
@@ -177,7 +347,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         if (self == other):
             return self
-        elif isinstance(other, FormsSpaceFunctor):
+        elif isinstance(other, FormsSubSpaceFunctor) or isinstance(other, FormsSpaceFunctor):
             if not (self._group == other._group):
                 return None
             analytic_type = self._analytic_type + other._analytic_type
@@ -280,8 +450,8 @@ class FormsRingFunctor(ConstructionFunctor):
         Return the merged functor of ``self`` and ``other``.
 
         It is only possible to merge instances of
-        ``FormsSpaceFunctor`` and ``FormsRingFunctor`` and
-        only if they share the same group.
+        ``FormsSubSpaceFunctor``, ``FormsSpaceFunctor`` and
+        ``FormsRingFunctor``. Also only if they share the same group.
 
         The analytic type of the merged functor is the extension
         of the two analytic types of the functors.
@@ -290,6 +460,14 @@ class FormsRingFunctor(ConstructionFunctor):
         parameters (where a forms space is assumed to have it
         set to ``True``).
     
+        Two ``FormsSubSpaceFunctor`` are merged to one with
+        a united basis and analytic type in case the weight and
+        multiplier agree. Otherwise the corresponding (extended)
+        ``FormsSpaceFunctor`` is returned.
+        
+        If only one ``FormsSubSpaceFunctor`` is involved then
+        it is treated like a ``FormsSpaceFunctor`` for the ambient space.
+
         Two ``FormsSpaceFunctor`` with different (k,ep)
         are merged to a corresponding ``FormsRingFunctor``.
         Otherwise the corresponding (extended) ``FormsSpaceFunctor``
@@ -304,7 +482,7 @@ class FormsRingFunctor(ConstructionFunctor):
 
         if (self == other):
             return self
-        elif isinstance(other, FormsSpaceFunctor):
+        elif isinstance(other, FormsSubSpaceFunctor) or isinstance(other, FormsSpaceFunctor):
             if not (self._group == other._group):
                 return None
             red_hom = self._red_hom

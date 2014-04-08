@@ -143,6 +143,42 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
     return (elem, homo, weight, ep, analytic_type)
 
 
+def FormsSubSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None, basis=()):
+    r"""
+    Return the FormsSubSpace for the given ``basis`` with an ambient space
+    of the given ``analytic_type``, ``group``, ``base_ring`` and degree (``k``, ``ep``).
+
+    INPUT:
+
+    - ``analytic_type``   - An element of ``AnalyticType()`` describing
+                            the analytic type of the ambient space.
+    - ``group``           - The (Hecke triangle) group of the ambient space
+                            (default: ``3``).
+    - ``base_ring``       - The base ring of the ambient space
+                            (default: ``ZZ``).
+    - ``k``               - The weight of the ambient space, a rational number
+                            (default: ``0``).
+    - ``ep``              - The multiplier of the ambient space, ``1``, ``-1``
+                            or ``None`` (in case ``ep`` should be
+                            determined from ``k``). Default: ``None``.
+    - ``basis``           - The basis of the subspace (default: ``()``).
+
+    For the variables ``group``, ``base_ring``, ``k``, ``ep``
+    the same arguments as for the class ``FormsSpace_abstract`` can be used.
+    The variables will then be put in canonical form.
+    In particular the multiplier ``ep`` is calculated
+    as usual from ``k`` if ``ep == None``.
+
+    OUTPUT:
+
+    The FormsSubSpace with the given properties.
+    """
+
+    from subspace import SubSpaceForms
+    ambient_space = FormsSpace(analytic_type, group, base_ring, k, ep)
+    return SubSpaceForms(ambient_space, basis)
+
+
 def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
     r"""
     Return the FormsSpace with the given ``analytic_type``, ``group``
@@ -166,7 +202,7 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
     the same arguments as for the class ``FormsSpace_abstract`` can be used.
     The variables will then be put in canonical form.
     In particular the multiplier ``ep`` is calculated
-    as usual from``k`` if ``ep == None``.
+    as usual from ``k`` if ``ep == None``.
 
     OUTPUT:
 

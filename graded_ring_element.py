@@ -84,12 +84,33 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
     def _repr_(self):
         """
-        Return the string representation of self.
+        Return the string representation of ``self``.
         """
+
+        return self._rat_repr()
+
+    def _rat_repr(self):
+        """
+        Return a string representation of ``self`` as a rational function in the generators.
+        """
+
         #return "{} in {}".format(str(self._rat), self.parent())
         with localvars(self.parent()._pol_ring, "f_rho, f_i, E2, d"):
             pol_str = str(self._rat)
         return "{}".format(pol_str)
+
+    def _qexp_repr(self):
+        """
+        Return a string representation of ``self`` as a Fourier series.
+        """
+
+        n=self.hecke_n()
+
+        # For now the series constructor doesn't behave well for non exact bases... :(
+        if (self.group().is_arithmetic() or not self.base_ring().is_exact()):
+            return str(self.q_expansion_fixed_d().add_bigoh(self.parent()._disp_prec))
+        else:
+            return str(self.q_expansion().add_bigoh(self.parent()._disp_prec))
 
     def _latex_(self):
         r"""
@@ -246,7 +267,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         r"""
         Return the sum of ``self`` and ``other``.
         """
-
+        
         return self.parent()(self._rat+other._rat)
 
     def _sub_(self,other):

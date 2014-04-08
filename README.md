@@ -2,6 +2,7 @@ Hecke modular forms for sage
 ============================
 
 An (initial) implementation of Hecke modular forms for sage:
+------------------------------------------------------------
 
   * At the moment: Only support for forms with respect to
     the full Hecke triangle group for `n=3, 4, 5, ...`
@@ -55,13 +56,16 @@ An (initial) implementation of Hecke modular forms for sage:
 
   * Dimension and basis for holomorphic or cuspidal (quasi) modular forms.
 
+  * Coordinate vectors for holomorphic modular forms and cusp forms.
+
+  * Subspaces (with respect to a basis) for ambient spaces
+    that support coordinate vectors, together with coordinate
+    vectors for subspaces.
+
+  * Documentation of all functions and methods.
+
 
 Planned:
-  * Code documentation
+--------
 
-  * Tests
-
-  * There is already initial support for coordinate vectors
-    with respect to the above basis.
-
-  * Arbitrary subspaces of holomorphic forms.
+  * (doc) tests, examples

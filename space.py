@@ -132,7 +132,6 @@ class QModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "holo"])
-        #self._ambient_module = FreeModule(self.coeff_ring(), self.dimension())
 
     def quasi_part_gens(self, r=0):
         r"""
@@ -211,7 +210,6 @@ class QCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "cusp"])
-        #self._ambient_module = FreeModule(self.coeff_ring(), self.dimension())
 
     def quasi_part_gens(self, r=0):
         r"""
@@ -333,7 +331,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type = self.AT(["holo"])
-        self._ambient_module = FreeModule(self.coeff_ring(), self.dimension())
+        self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
     def gens(self):
@@ -351,6 +349,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         return max(self._l1+1, ZZ(0))
 
+    @cached_method
     def coordinate_vector(self, v):
         r"""
         Return the coordinate vector of ``v`` with respect to
@@ -362,17 +361,16 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         OUTPUT:
 
-        An element of ``self.ambient_module()``, namely the
+        An element of ``self.module()``, namely the
         corresponding coordinate vector of ``v`` with respect
         to the basis ``self.gens()``.
 
-        The ambient module is the free module over the coefficient
+        The module is the free module over the coefficient
         ring of ``self`` with the dimension of ``self``.
         """
 
-        vec = v.q_expansion(prec=self.dimension()).padded_list()
-        vec.pop(0)
-        return self._ambient_module(vector(self.coeff_ring(), vec))
+        vec = v.q_expansion(prec=self.degree()).add_bigoh(self.degree()).padded_list()
+        return self._module(vector(self.coeff_ring(), vec))
 
 class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
@@ -398,7 +396,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["cusp"])
-        self._ambient_module = FreeModule(self.coeff_ring(), self.dimension())
+        self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
     def gens(self):
@@ -416,6 +414,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         return max(self._l1, ZZ(0))
 
+    @cached_method
     def coordinate_vector(self, v):
         r"""
         Return the coordinate vector of ``v`` with respect to
@@ -427,17 +426,17 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         OUTPUT:
 
-        An element of ``self.ambient_module()``, namely the
+        An element of ``self.module()``, namely the
         corresponding coordinate vector of ``v`` with respect
         to the basis ``self.gens()``.
 
-        The ambient module is the free module over the coefficient
+        The module is the free module over the coefficient
         ring of ``self`` with the dimension of ``self``.
         """
 
-        vec = v.q_expansion(prec=self.dimension()+1).padded_list()
+        vec = v.q_expansion(prec=self.degree()+1).add_bigoh(self.degree()+1).padded_list()
         vec.pop(0)
-        return self._ambient_module(vector(self.coeff_ring(), vec))
+        return self._module(vector(self.coeff_ring(), vec))
 
 class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
@@ -465,7 +464,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT([])
-        self._ambient_module = FreeModule(self.coeff_ring(), self.dimension())
+        self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     def _change_degree(self, k, ep):
         r"""
@@ -494,6 +493,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
 
         return 0
 
+    @cached_method
     def coordinate_vector(self, v):
         r"""
         Return the coordinate vector of ``v`` with respect to
@@ -501,8 +501,8 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
 
         Since this is the zero module which only contains
         the zero form the trivial vector in the trivial
-        ambient module of dimension ``0`` is returned.
+        module of dimension ``0`` is returned.
         """
 
         vec = []
-        return self._ambient_module(vector(self.coeff_ring(), vec))
+        return self._module(vector(self.coeff_ring(), vec))

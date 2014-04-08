@@ -44,10 +44,17 @@ class FormsElement(FormsRingElement):
 
         if self.AT(["quasi"])>=self._analytic_type:
             pass
-        elif not (
+        elif not (\
             self.is_homogeneous() and\
             self._weight  == parent.weight() and\
             self._ep      == parent.ep() ):
+                raise Exception("{} does not correspond to an element of {}.".format(rat, parent))
+
+        from subspace import SubSpaceForms
+        if isinstance(parent, SubSpaceForms) and (parent._module is not None):
+            try:
+                self.coordinate_vector()
+            except TypeError:
                 raise Exception("{} does not correspond to an element of {}.".format(rat, parent))
 
     def _repr_(self):
@@ -55,13 +62,7 @@ class FormsElement(FormsRingElement):
         Return the string representation of self.
         """
 
-        n=self.hecke_n()
-
-        # For now the series constructor doesn't behave well for non exact bases... :(
-        if (self.group().is_arithmetic() or not self.base_ring().is_exact()):
-            return str(self.q_expansion_fixed_d().add_bigoh(self.parent()._disp_prec))
-        else:
-            return str(self.q_expansion().add_bigoh(self.parent()._disp_prec))
+        return self._qexp_repr()
 
     def _latex_(self):
         r"""
@@ -75,15 +76,28 @@ class FormsElement(FormsRingElement):
         Return the coordinate vector of ``self`` with
         respect to ``self.parent().gens()``.
 
-        The returned coordinate vector is an element
-        of ``self.parent().ambient_module()``.        
-        
-        This uses the the corresponding function of the
+        Note: This uses the corresponding function of the
         parent. If the parent has not defined a coordinate
-        vector function or an ambient module for coordinate
-        vectors then an exception is raised by the parent
+        vector function or a module for coordinate vectors
+        then an exception is raised by the parent
         (default implementation).
         """
 
         return self.parent().coordinate_vector(self)
+
+    def ambient_coordinate_vector(self):
+        r"""
+        Return the coordinate vector of ``self`` with
+        respect to ``self.parent().ambient_space().gens()``.
+
+        The returned coordinate vector is an element
+        of ``self.parent().module()``.        
         
+        Mote: This uses the corresponding function of the
+        parent. If the parent has not defined a coordinate
+        vector function or an ambient module for
+        coordinate vectors then an exception is raised
+        by the parent (default implementation).
+        """
+
+        return self.parent().ambient_coordinate_vector(self)
