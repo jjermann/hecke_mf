@@ -64,15 +64,20 @@ def get_base_ring(ring, var_name="d"):
     return base_ring
 
 
+def ConstantFormsSpaceFunctor(group):
+    return FormsSpaceFunctor("holo", group, QQ(0), ZZ(1))
+
+
 class FormsSubSpaceFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms sub spaces.
 
-    Note that when the base ring is not a
-    ``BaseFacade`` then the functor constructs
-    a forms space or ring and not a forms subspace.
-
-    This case occurs in the pushout constructions.
+    Note: When the base ring is not a ``BaseFacade``
+    the functor is first merged with the ConstantFormsSpaceFunctor.
+    This case occurs in the pushout constructions
+    (when trying to find a common parent
+    between a forms subspace and a ring which
+    is not a ``BaseFacade``).
     """
 
     from analytic_type import AnalyticType
@@ -119,21 +124,16 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
         For this it is required that the base ring of the basis coerces
         into the new base ring.
         
-        If not then the corresponding (possibly extended) ambient forms
-        space or ring is constructed.
+        If not then we first merge the functor with the ConstantFormsSpaceFunctor.
         """
 
         if (isinstance(R, BaseFacade)):
             R = get_base_ring(R._ring)
             return FormsSubSpace(self._analytic_type, self._group, R, self._k, self._ep, self._basis)
         else:
-            R = get_base_ring(R)
-            analytic_type = self._analytic_type.extend_by("holo")
-
-            if (self._k == 0 and self._ep == 1):
-                return FormsSpace(analytic_type, self._group, R, QQ(0), ZZ(1))
-            else:
-                return FormsRing(analytic_type, self._group, R, True)
+            R = BaseFacade(get_base_ring(R))
+            merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
+            return merged_functor(R)
 
     def __repr__(self):
         r"""  
@@ -230,17 +230,12 @@ class FormsSpaceFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms spaces.
 
-    Note that in a special case the functor
-    constructs a forms ring instead of a forms
-    space. Namely when the base ring is not a
-    ``BaseFacade`` and (weight,ep) of ``self``
-    is not equal to (0,1).
-
-    This case does not appear naturally but
-    it occurs in the pushout construction
-    when trying to find a common parent
+    Note: When the base ring is not a ``BaseFacade``
+    the functor is first merged with the ConstantFormsSpaceFunctor.
+    This case occurs in the pushout constructions
+    (when trying to find a common parent
     between a forms space and a ring which
-    is not a ``BaseFacade``.
+    is not a ``BaseFacade``).
     """
 
     from analytic_type import AnalyticType
@@ -280,28 +275,16 @@ class FormsSpaceFunctor(ConstructionFunctor):
         If ``R`` is a ``BaseFacade(S)`` then return the corresponding
         forms space with base ring ``get_base_ring(S)``.
         
-        If not then ``R`` is considered to be part of the space of
-        constants with base ring ``get_base_ring(R)``:
-        
-        If in that case (k, ep) is equal to (0, 1) then the corresponding
-        (holomorphically) extended forms space with base ring
-        ``get_base_ring(R)`` is returned,
-        
-        Otherwise the corresponding (holomorphically) extended forms ring
-        with base ring ``get_base_ring(R)`` is returned.
+        If not then we first merge the functor with the ConstantFormsSpaceFunctor.
         """
 
         if (isinstance(R, BaseFacade)):
             R = get_base_ring(R._ring)
             return FormsSpace(self._analytic_type, self._group, R, self._k, self._ep)
         else:
-            R = get_base_ring(R)
-            analytic_type = self._analytic_type.extend_by("holo")
-
-            if (self._k == 0 and self._ep == 1):
-                return FormsSpace(analytic_type, self._group, R, QQ(0), ZZ(1))
-            else:
-                return FormsRing(analytic_type, self._group, R, True)
+            R = BaseFacade(get_base_ring(R))
+            merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
+            return merged_functor(R)
 
     def __repr__(self):
         r"""  
@@ -379,6 +362,13 @@ class FormsSpaceFunctor(ConstructionFunctor):
 class FormsRingFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms rings.
+
+    Note: When the base ring is not a ``BaseFacade``
+    the functor is first merged with the ConstantFormsSpaceFunctor.
+    This case occurs in the pushout constructions.
+    (when trying to find a common parent
+    between a forms ring and a ring which
+    is not a ``BaseFacade``).
     """
 
     from analytic_type import AnalyticType
@@ -419,20 +409,16 @@ class FormsRingFunctor(ConstructionFunctor):
         If ``R`` is a ``BaseFacade(S)`` then return the corresponding
         forms ring with base ring ``get_base_ring(S)``.
         
-        If not then ``R`` is considered to be part of the space of
-        constants with base ring ``get_base_ring(R)``:
-        
-        In that case the corresponding (holomorphically) extended forms ring
-        with base ring ``get_base_ring(R)```is returned.
+        If not then we first merge the functor with the ConstantFormsSpaceFunctor.
         """
 
         if (isinstance(R, BaseFacade)):
             R = get_base_ring(R._ring)
             return FormsRing(self._analytic_type, self._group, R, self._red_hom)
         else:
-            R = get_base_ring(R)
-            analytic_type = self._analytic_type.extend_by("holo")
-            return FormsRing(analytic_type, self._group, R, self._red_hom)
+            R = BaseFacade(get_base_ring(R))
+            merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
+            return merged_functor(R)
 
     def __repr__(self):
         r"""  
