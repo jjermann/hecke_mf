@@ -95,6 +95,13 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         return False
 
+    def change_ring(self, new_base_ring):   
+        r"""
+        Return the same space as ``self`` but over a new base ring ``new_base_ring``.
+        """
+                            
+        return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis)
+ 
     @cached_method
     def basis(self):
         r"""

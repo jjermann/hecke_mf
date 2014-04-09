@@ -35,6 +35,9 @@ def get_base_ring(ring, var_name="d"):
     If ``ring`` is of the form ``FractionField(PolynomialRing(R,'d'))``:
     Return ``R``.
 
+    If ``ring`` is of the form ``FractionField(R)``:
+    Return ``R``.
+
     If ``ring`` is of the form ``PolynomialRing(R,'d')``:
     Return ``R``.
     
@@ -52,14 +55,19 @@ def get_base_ring(ring, var_name="d"):
     name is used for the polynomial ring.
     """
 
-    from sage.rings.fraction_field import is_FractionField
+    #from sage.rings.fraction_field import is_FractionField
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+    from sage.categories.pushout import FractionField as FractionFieldFunctor
 
     base_ring = ring
-    if (is_FractionField(base_ring)):
-        base_ring = base_ring.base()
+    #if (is_FractionField(base_ring)):
+    #    base_ring = base_ring.base()
+    if (base_ring.construction() and base_ring.construction()[0] == FractionFieldFunctor()):
+        base_ring = base_ring.construction()[1]
     if (is_PolynomialRing(base_ring) and base_ring.ngens()==1 and base_ring.variable_name()==var_name):
         base_ring = base_ring.base()
+    if (base_ring.construction() and base_ring.construction()[0] == FractionFieldFunctor()):
+        base_ring = base_ring.construction()[1]
 
     return base_ring
 
@@ -209,7 +217,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             analytic_type = self._analytic_type + other._analytic_type
             return FormsRingFunctor(analytic_type, self._group, red_hom)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Compare ``self`` and ``other``.
         """
@@ -220,9 +228,9 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             and self._k             == other._k\
             and self._ep            == other._ep\
             and self._basis         == other._basis ):
-                return 0
+                return True
         else:
-            return -1
+            return False
     
 
 
@@ -345,7 +353,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
             analytic_type = self._analytic_type + other._analytic_type
             return FormsRingFunctor(analytic_type, self._group, red_hom)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Compare ``self`` and ``other``.
         """
@@ -355,9 +363,9 @@ class FormsSpaceFunctor(ConstructionFunctor):
             and self._analytic_type == other._analytic_type\
             and self._k             == other._k\
             and self._ep            == other._ep ):
-                return 0
+                return True
         else:
-            return -1
+            return False
     
 class FormsRingFunctor(ConstructionFunctor):
     r"""
@@ -481,7 +489,7 @@ class FormsRingFunctor(ConstructionFunctor):
             analytic_type = self._analytic_type + other._analytic_type
             return FormsRingFunctor(analytic_type, self._group, red_hom)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Compare ``self`` and ``other``.
         """
@@ -490,9 +498,9 @@ class FormsRingFunctor(ConstructionFunctor):
             and self._group         == other._group\
             and self._analytic_type == other._analytic_type\
             and self._red_hom       == other._red_hom ):
-                return 0
+                return True
         else:
-            return -1
+            return False
 
 
 from sage.structure.unique_representation import UniqueRepresentation

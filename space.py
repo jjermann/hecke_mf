@@ -28,7 +28,6 @@ from sage.misc.cachefunc import cached_method
 from hecke_triangle_groups import HeckeTriangleGroup
 from abstract_space import FormsSpace_abstract
 
-
 def canonical_parameters(group, base_ring, k, ep):
     r"""
     Return a canonical version of the parameters.

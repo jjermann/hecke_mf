@@ -30,6 +30,9 @@ from constructor import FormsRing, FormsSpace, rational_type
 class FormsRing_abstract(Parent):
     r"""
     Abstract (Hecke) forms ring.
+
+    This should never be called directly. Instead one should
+    instantiate one of the derived classes of this class.
     """
 
     from graded_ring_element import FormsRingElement
@@ -53,6 +56,21 @@ class FormsRing_abstract(Parent):
         OUTPUT:
 
         The corresponding abstract (Hecke) forms ring.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: MR = ModularFormsRing(group=5, base_ring=ZZ, red_hom=True)
+            sage: MR
+            ModularFormsRing(n=5) over Integer Ring
+            sage: MR.group()
+            Hecke triangle group for n = 5
+            sage: MR.base_ring()
+            Integer Ring
+            sage: MR.has_reduce_hom()
+            True
+            sage: MR.is_homogeneous()
+            False
         """
 
         from graded_ring import canonical_parameters
@@ -90,29 +108,23 @@ class FormsRing_abstract(Parent):
         self._diff_alg            = self._free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})
         (X,Y,Z,dX,dY,dZ)          = self._diff_alg.gens()
         self._derivative_op       =   1/self._group.n * (X*Z-Y)*dX\
-                                    + 1/2 * (Y*Z-X**(self._group.n-1))*dY\
+                                    + ZZ(1)/ZZ(2) * (Y*Z-X**(self._group.n-1))*dY\
                                     + (self._group.n-2) / (4*self._group.n) * (Z**2-X**(self._group.n-2))*dZ
         self._serre_derivative_op = - 1/self._group.n * Y*dX\
-                                    - 1/2 * X**(self._group.n-1)*dY\
+                                    - ZZ(1)/ZZ(2) * X**(self._group.n-1)*dY\
                                     - (self._group.n-2) / (4*self._group.n) * (Z**2-X**(self._group.n-2))*dZ
 
         #super(FormsRing_abstract, self).__init__(self.coeff_ring())
 
-    def __cmp__(self, other):
-        r"""
-        Compare ``self`` and ``right``.
-        """
-
-        if (type(self)!=type(other)):
-            return -1
-        elif (self.group == other.group and self.base_ring == other.base_ring):
-            return 0
-        else:
-            return -1
-
     def _repr_(self):
         r"""
         Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QModularFormsRing
+            sage: QModularFormsRing(group=4)
+            QuasiModularFormsRing(n=4) over Integer Ring
         """
 
         return "{}FormsRing(n={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n, self._base_ring)
@@ -120,6 +132,12 @@ class FormsRing_abstract(Parent):
     def _latex_(self):
         r"""
         Return the LaTeX representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QWeakModularFormsRing
+            sage: latex(QWeakModularFormsRing())
+            \mathcal{ QM^! }_{n=3}(\Bold{Z})
         """
 
         from sage.misc.latex import latex
@@ -128,6 +146,23 @@ class FormsRing_abstract(Parent):
     def _element_constructor_(self, x):
         r"""
         Return ``x`` coerced/converted into this forms ring.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: MR = ModularFormsRing()
+            sage: (x,y,z,d) = MR.pol_ring().gens()
+
+            sage: MR(x^3)
+            f_rho^3
+
+            sage: el = MR.Delta().full_reduce()
+            sage: MR(el)
+            f_rho^3*d - f_i^2*d
+            sage: el.parent() == MR
+            False
+            sage: MR(el).parent() == MR
+            True
         """
 
         from graded_ring_element import FormsRingElement
@@ -140,6 +175,23 @@ class FormsRing_abstract(Parent):
     def _coerce_map_from_(self, S):
         r"""
         Return whether or not there exists a coercion from ``S`` to ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QWeakModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: MR1 = QWeakModularFormsRing(base_ring=CC)
+            sage: MR2 = ModularFormsRing()
+            sage: MR3 = CuspFormsRing()
+            sage: MR3.has_coerce_map_from(MR2)
+            False
+            sage: MR1.has_coerce_map_from(MR2)
+            True
+            sage: MR2.has_coerce_map_from(MR3)
+            True
+            sage: MR3.has_coerce_map_from(ZZ)
+            False
+            sage: MR1.has_coerce_map_from(ZZ)
+            True
         """
 
         from space import FormsSpace_abstract
@@ -159,15 +211,35 @@ class FormsRing_abstract(Parent):
     def set_default_prec(self, prec = ZZ(10)):
         r"""
         Set the default precision ``prec`` for the Fourier expansion (default: ``10``).
-        Note that this is also used as the default precision for the Fourier expansion 
+        Note that this is also used as the default precision for the Fourier expansion
         when evaluating forms.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: from space import ModularForms
+            sage: MR = ModularFormsRing()
+            sage: MR.set_default_prec(3)
+            sage: MR.Delta().q_expansion_fixed_d()
+            q - 24*q^2 + O(q^3)
+            sage: MF = ModularForms(k=4)
+            sage: MF.set_default_prec(2)
+            sage: MF.E4()
+            1 + 240*q + O(q^2)
         """
 
         self._prec = ZZ(prec)
-    
+
     def default_prec(self):
         r"""
         Returns the default precision for the Fourier expansion of ``self``.
+
+        EXAMPLES::
+
+            sage: from space import ModularForms
+            sage: MF = ModularForms()
+            sage: MF.default_prec()
+            10
         """
 
         return self._prec
@@ -177,6 +249,18 @@ class FormsRing_abstract(Parent):
         Set the maximal precision ``disp_prec`` used for displaying (elements of) ``self``
         as a Fourier expansion. If ``disp_prec`` is ``None`` (default) then the
         default precision is used.
+
+        EXAMPLES::
+
+            sage: from space import ModularForms
+            sage: MF = ModularForms(k=4)
+            sage: MF.set_default_prec(5)
+            sage: MF.set_disp_prec(3)
+            sage: MF.E4()
+            1 + 240*q + 2160*q^2 + O(q^3)
+            sage: MF.set_disp_prec()
+            sage: MF.E4()
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + O(q^5)
         """
 
         if (disp_prec == None):
@@ -187,6 +271,13 @@ class FormsRing_abstract(Parent):
         r"""
         Returns the default display precision for Fourier expansion representations
         of (elements of) ``self``.
+
+        EXAMPLES::
+
+            sage: from space import CuspForms
+            sage: MF = CuspForms(k=12)
+            sage: MF.default_disp_prec()
+            5
         """
 
         return self._disp_prec
@@ -194,6 +285,30 @@ class FormsRing_abstract(Parent):
     def set_default_num_prec(self, num_prec = ZZ(53)):
         r"""
         Set the default numerical precision ``num_prec`` (default: ``53``).
+
+        EXAMPLES::
+
+            sage: from space import ModularForms
+            sage: MF = ModularForms(k=6)
+            sage: MF.set_default_prec(20)
+            sage: MF.set_default_num_prec(10)
+            sage: E6 = MF.E6()
+            sage: E6(i)                                   # rel tol 1e-4
+            -0.0020
+            sage: MF.set_default_num_prec(100)
+            sage: E6(i)                                   # rel tol 1e-25
+            0.00000000000000000000000000000
+
+            sage: MF = ModularForms(group=5, k=4/3)
+            sage: F_rho = MF.F_rho()
+            sage: F_rho.q_expansion(prec=2)[1]
+            7/(100*d)
+            sage: MF.set_default_num_prec(10)
+            sage: F_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-1
+            9.9
+            sage: MF.set_default_num_prec(100)
+            sage: F_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-25
+            9.9259324351079591527601778294
         """
 
         self._num_prec = ZZ(num_prec)
@@ -201,13 +316,33 @@ class FormsRing_abstract(Parent):
     def default_num_prec(self):
         r"""
         Returns the default numerical precision of ``self``.
+
+        EXAMPLES::
+
+            sage: from space import WeakModularForms
+            sage: MF = WeakModularForms()
+            sage: MF.default_num_prec()
+            53
         """
 
-        return self._disp_prec
+        return self._num_prec
 
     def _an_element_(self):
         r"""
         Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import CuspFormsRing
+            sage: from space import WeakModularForms
+            sage: CuspFormsRing()._an_element_()
+            f_rho^3*d - f_i^2*d
+            sage: _ == CuspFormsRing().Delta()
+            True
+            sage: WeakModularForms()._an_element_()
+            O(q^5)
+            sage: _ == WeakModularForms().zero()
+            True
         """
 
         return self(self.Delta())
@@ -215,6 +350,12 @@ class FormsRing_abstract(Parent):
     def change_ring(self, new_base_ring):
         r"""
         Return the same space as ``self`` but over a new base ring ``new_base_ring``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing().change_ring(CC)
+            ModularFormsRing(n=3) over Complex Field with 53 bits of precision
         """
 
         return self.__class__.__base__(self._group, new_base_ring, self._red_hom)
@@ -222,6 +363,24 @@ class FormsRing_abstract(Parent):
     def graded_ring(self):
         r"""
         Return the graded ring containing ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing, CuspFormsRing
+            sage: from space import CuspForms
+
+            sage: MR = ModularFormsRing(group=5)
+            sage: MR.graded_ring() == MR
+            True
+
+            sage: CF=CuspForms(k=12)
+            sage: CF.graded_ring() == CuspFormsRing()
+            False
+            sage: CF.graded_ring() == CuspFormsRing(red_hom=True)
+            True
+
+            sage: CF.subspace([CF.Delta()]).graded_ring() == CuspFormsRing(red_hom=True)
+            True
         """
 
         return self.extend_type(ring=True)
@@ -231,15 +390,33 @@ class FormsRing_abstract(Parent):
         Return a new space which contains (elements of) ``self`` with the analytic type
         of ``self`` extended by ``analytic_type``, possibly extended to a graded ring
         in case ``ring`` is ``True``.
-        
+
         INPUT:
-        
+
         - ``analytic_type``   - An ``AnalyticType`` or something which coerces into it (default: ``None``).
         - ``ring``            - Whether to extend to a graded ring (default: ``False``).
 
         OUTPUT:
-        
-        The new extended space.        
+
+        The new extended space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: from space import CuspForms
+
+            sage: MR = ModularFormsRing(group=5)
+            sage: MR.extend_type(["quasi", "weak"])
+            QuasiWeakModularFormsRing(n=5) over Integer Ring
+
+            sage: CF=CuspForms(k=12)
+            sage: CF.extend_type("holo")
+            ModularForms(n=3, k=12, ep=1) over Integer Ring
+            sage: CF.extend_type("quasi", ring=True)
+            QuasiCuspFormsRing(n=3) over Integer Ring
+
+            sage: CF.subspace([CF.Delta()]).extend_type()
+            CuspForms(n=3, k=12, ep=1) over Integer Ring
         """
 
         if analytic_type == None:
@@ -257,16 +434,35 @@ class FormsRing_abstract(Parent):
         Return a new space with analytic properties shared by both ``self`` and ``analytic_type``,
         possibly reduced to its homogeneous space of the given ``degree`` (if ``degree`` is set).
         Elements of the new space are contained in ``self``.
-        
+
         INPUT:
-        
+
         - ``analytic_type``   - An ``AnalyticType`` or something which coerces into it (default: ``None``).
         - ``degree``          - ``None`` (default) or the degree of the homogeneous component to which
                                 ``self`` should be reduced.
 
         OUTPUT:
-        
+
         The new reduced space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QModularFormsRing
+            sage: from space import QModularForms
+
+            sage: MR = QModularFormsRing()
+            sage: MR.reduce_type(["quasi", "cusp"])
+            QuasiCuspFormsRing(n=3) over Integer Ring
+
+            sage: MR.reduce_type("cusp", degree=(12,1))
+            CuspForms(n=3, k=12, ep=1) over Integer Ring
+
+            sage: MF=QModularForms(k=6)
+            sage: MF.reduce_type("holo")
+            ModularForms(n=3, k=6, ep=-1) over Integer Ring
+
+            sage: MF.reduce_type([])
+            ZeroForms(n=3, k=6, ep=-1) over Integer Ring
         """
 
         if analytic_type == None:
@@ -288,7 +484,7 @@ class FormsRing_abstract(Parent):
         r"""
         Return a functor that constructs ``self`` (used by the coercion machinery).
 
-        EXAMPLE:: 
+        EXAMPLES::
 
         sage: from graded_ring import ModularFormsRing
         sage: ModularFormsRing().construction()
@@ -302,6 +498,18 @@ class FormsRing_abstract(Parent):
     def group(self):
         r"""
         Return the (Hecke triangle) group of ``self``.
+
+        EXAMPLES::
+
+        sage: from graded_ring import ModularFormsRing
+        sage: MR = ModularFormsRing(group=7)
+        sage: MR.group()
+        Hecke triangle group for n = 7
+
+        sage: from space import CuspForms
+        sage: CF = CuspForms(group=7, k=4/5)
+        sage: CF.group()
+        Hecke triangle group for n = 7
         """
 
         return self._group
@@ -311,6 +519,18 @@ class FormsRing_abstract(Parent):
         r"""
         Return the parameter ``n`` of the
         (Hecke triangle) group of ``self``.
+
+        EXAMPLES::
+
+        sage: from graded_ring import ModularFormsRing
+        sage: MR = ModularFormsRing(group=7)
+        sage: MR.hecke_n()
+        7
+
+        sage: from space import CuspForms
+        sage: CF = CuspForms(group=7, k=4/5)
+        sage: CF.hecke_n()
+        7
         """
 
         return self._group.n
@@ -319,6 +539,16 @@ class FormsRing_abstract(Parent):
     def base_ring(self):
         r"""
         Return base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing().base_ring()
+            Integer Ring
+
+            sage: from space import CuspForms
+            sage: CuspForms(k=12, base_ring=AA).base_ring()
+            Algebraic Real Field
         """
 
         return self._base_ring
@@ -327,6 +557,16 @@ class FormsRing_abstract(Parent):
     def coeff_ring(self):
         r"""
         Return coefficient ring of ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing().coeff_ring()
+            Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+
+            sage: from space import CuspForms
+            sage: CuspForms(k=12, base_ring=AA).coeff_ring()
+            Fraction Field of Univariate Polynomial Ring in d over Algebraic Real Field
         """
 
         return self._coeff_ring
@@ -336,6 +576,16 @@ class FormsRing_abstract(Parent):
         r"""
         Return the underlying polynomial ring used
         by ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing().pol_ring()
+            Multivariate Polynomial Ring in x, y, z, d over Integer Ring
+
+            sage: from space import CuspForms
+            sage: CuspForms(k=12, base_ring=AA).pol_ring()
+            Multivariate Polynomial Ring in x, y, z, d over Algebraic Real Field
         """
 
         return self._pol_ring
@@ -345,6 +595,16 @@ class FormsRing_abstract(Parent):
         r"""
         Return the underlying rational field used by
         ``self`` to construct/represent elements.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing().rat_field()
+            Fraction Field of Multivariate Polynomial Ring in x, y, z, d over Integer Ring
+
+            sage: from space import CuspForms
+            sage: CuspForms(k=12, base_ring=AA).rat_field()
+            Fraction Field of Multivariate Polynomial Ring in x, y, z, d over Algebraic Real Field
         """
 
         return self._rat_field
@@ -355,6 +615,16 @@ class FormsRing_abstract(Parent):
         Return the algebra of differential operators
         (over QQ) which is used on rational functions
         representing elements of ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing().diff_alg()
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1, dX*X: X*dX + 1}
+
+            sage: from space import CuspForms
+            sage: CuspForms(k=12, base_ring=AA).diff_alg()
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1, dX*X: X*dX + 1}
         """
 
         return self._diff_alg
@@ -369,6 +639,20 @@ class FormsRing_abstract(Parent):
         spaces which temporarily produce an element of ``self``
         but want to consider it as a homogeneous element
         (also see ``reduce``).
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing().has_reduce_hom()
+            False
+            sage: ModularFormsRing(red_hom=True).has_reduce_hom()
+            True
+
+            sage: from space import ModularForms
+            sage: ModularForms(k=6).has_reduce_hom()
+            True
+            sage: ModularForms(k=6).graded_ring().has_reduce_hom()
+            True
         """
 
         return self._red_hom
@@ -376,6 +660,16 @@ class FormsRing_abstract(Parent):
     def is_homogeneous(self):
         r"""
         Return whether ``self`` is homogeneous component.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing().is_homogeneous()
+            False
+
+            sage: from space import ModularForms
+            sage: ModularForms(k=6).is_homogeneous()
+            True
         """
 
         return self._weight != None
@@ -383,6 +677,20 @@ class FormsRing_abstract(Parent):
     def is_modular(self):
         r"""
         Return whether ``self`` only contains modular elements.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QWeakModularFormsRing, CuspFormsRing
+            sage: QWeakModularFormsRing().is_modular()
+            False
+            sage: CuspFormsRing(group=7).is_modular()
+            True
+
+            sage: from space import QWeakModularForms, CuspForms
+            sage: QWeakModularForms(k=10).is_modular()
+            False
+            sage: CuspForms(group=7, k=12, base_ring=AA).is_modular()
+            True
         """
 
         return not (self.AT("quasi") <= self._analytic_type)
@@ -391,6 +699,20 @@ class FormsRing_abstract(Parent):
         r"""
         Return whether ``self`` only contains weakly
         holomorphic modular elements.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, QWeakModularFormsRing, CuspFormsRing
+            sage: QMModularFormsRing().is_weakly_holomorphic()
+            False
+            sage: QWeakModularFormsRing().is_weakly_holomorphic()
+            True
+
+            sage: from space import MModularForms, CuspForms
+            sage: MModularForms(k=10).is_weakly_holomorphic()
+            False
+            sage: CuspForms(group=7, k=12, base_ring=AA).is_weakly_holomorphic()
+            True
         """
 
         return (self.AT("weak", "quasi") >= self._analytic_type)
@@ -399,6 +721,20 @@ class FormsRing_abstract(Parent):
         r"""
         Return whether ``self`` only contains holomorphic
         modular elements.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QWeakModularFormsRing, QModularFormsRing
+            sage: QWeakModularFormsRing().is_holomorphic()
+            False
+            sage: QModularFormsRing().is_holomorphic()
+            True
+
+            sage: from space import WeakModularForms, CuspForms
+            sage: WeakModularForms(k=10).is_holomorphic()
+            False
+            sage: CuspForms(group=7, k=12, base_ring=AA).is_holomorphic()
+            True
         """
 
         return (self.AT("holo", "quasi") >= self._analytic_type)
@@ -406,6 +742,20 @@ class FormsRing_abstract(Parent):
     def is_cuspidal(self):
         r"""
         Return whether ``self`` only contains cuspidal elements.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QModularFormsRing, QCuspFormsRing
+            sage: QModularFormsRing().is_cuspidal()
+            False
+            sage: QCuspFormsRing().is_cuspidal()
+            True
+
+            sage: from space import ModularForms, QCuspForms
+            sage: ModularForms(k=12).is_cuspidal()
+            False
+            sage: QCuspForms(k=12).is_cuspidal()
+            True
         """
 
         return (self.AT("cusp", "quasi") >= self._analytic_type)
@@ -413,6 +763,18 @@ class FormsRing_abstract(Parent):
     def is_zerospace(self):
         r"""
         Return whether ``self`` is the (0-dimensional) zero space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing().is_zerospace()
+            False
+
+            sage: from space import ModularForms, CuspForms
+            sage: ModularForms(k=12).is_zerospace()
+            False
+            sage: CuspForms(k=12).reduce_type([]).is_zerospace()
+            True
         """
 
         return (self.AT(["quasi"]) >= self._analytic_type)
@@ -420,6 +782,20 @@ class FormsRing_abstract(Parent):
     def analytic_type(self):
         r"""
         Return the analytic type of ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, QWeakModularFormsRing
+            sage: QMModularFormsRing().analytic_type()
+            quasi meromorphic modular
+            sage: QWeakModularFormsRing().analytic_type()
+            quasi weakly holomorphic modular
+
+            sage: from space import MModularForms, CuspForms
+            sage: MModularForms(k=10).analytic_type()
+            meromorphic modular
+            sage: CuspForms(group=7, k=12, base_ring=AA).analytic_type()
+            cuspidal
         """
 
         return self._analytic_type
@@ -427,6 +803,12 @@ class FormsRing_abstract(Parent):
     def homogeneous_space(self, k, ep):
         r"""
         Return the homogeneous component of degree (``k``, ``e``) of ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, QWeakModularFormsRing
+            sage: QMModularFormsRing(group=7).homogeneous_space(k=2, ep=-1)
+            QuasiMeromorphicModularForms(n=7, k=2, ep=-1) over Integer Ring
         """
 
         return self.reduce_type(degree = (k,ep))
@@ -441,6 +823,36 @@ class FormsRing_abstract(Parent):
         It lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, WeakModularFormsRing, CuspFormsRing
+            sage: MR = WeakModularFormsRing(group=7)
+            sage: J_inv = MR.J_inv()
+            sage: J_inv in MR
+            True
+            sage: CuspFormsRing(group=7).J_inv() == J_inv
+            True
+            sage: J_inv
+            f_rho^7/(f_rho^7 - f_i^2)
+            sage: QMModularFormsRing(group=7).J_inv() == QMModularFormsRing(group=7)(J_inv)
+            True
+
+            sage: from space import WeakModularForms, CuspForms
+            sage: MF = WeakModularForms(group=5, k=0)
+            sage: J_inv = MF.J_inv()
+            sage: J_inv in MF
+            True
+            sage: WeakModularFormsRing(group=5, red_hom=True).J_inv() == J_inv
+            True
+            sage: CuspForms(group=5, k=12).J_inv() == J_inv
+            True
+            sage: MF.set_disp_prec(3)
+            sage: J_inv
+            d*q^-1 + 79/200 + 42877/(640000*d)*q + 12957/(2000000*d^2)*q^2 + O(q^3)
+
+            sage: WeakModularForms().J_inv()
+            1/1728*q^-1 + 31/72 + 1823/16*q + 335840/27*q^2 + 16005555/32*q^3 + 11716352*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
@@ -456,6 +868,36 @@ class FormsRing_abstract(Parent):
         It lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, WeakModularFormsRing, CuspFormsRing
+            sage: MR = WeakModularFormsRing(group=7)
+            sage: j_inv = MR.j_inv()
+            sage: j_inv in MR
+            True
+            sage: CuspFormsRing(group=7).j_inv() == j_inv
+            True
+            sage: j_inv
+            f_rho^7/(f_rho^7*d - f_i^2*d)
+            sage: QMModularFormsRing(group=7).j_inv() == QMModularFormsRing(group=7)(j_inv)
+            True
+
+            sage: from space import WeakModularForms, CuspForms
+            sage: MF = WeakModularForms(group=5, k=0)
+            sage: j_inv = MF.j_inv()
+            sage: j_inv in MF
+            True
+            sage: WeakModularFormsRing(group=5, red_hom=True).j_inv() == j_inv
+            True
+            sage: CuspForms(group=5, k=12).j_inv() == j_inv
+            True
+            sage: MF.set_disp_prec(3)
+            sage: j_inv
+            q^-1 + 79/(200*d) + 42877/(640000*d^2)*q + 12957/(2000000*d^3)*q^2 + O(q^3)
+
+            sage: WeakModularForms().j_inv()
+            q^-1 + 744 + 196884*q + 21493760*q^2 + 864299970*q^3 + 20245856256*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
@@ -473,6 +915,38 @@ class FormsRing_abstract(Parent):
         It lies in a (cuspidal) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: MR = ModularFormsRing(group=7)
+            sage: F_rho = MR.F_rho()
+            sage: F_rho in MR
+            True
+            sage: CuspFormsRing(group=7).F_rho() == F_rho
+            True
+            sage: F_rho
+            f_rho
+            sage: QMModularFormsRing(group=7).F_rho() == QMModularFormsRing(group=7)(F_rho)
+            True
+
+            sage: from space import ModularForms, CuspForms
+            sage: MF = ModularForms(group=5, k=4/3)
+            sage: F_rho = MF.F_rho()
+            sage: F_rho in MF
+            True
+            sage: ModularFormsRing(group=5, red_hom=True).F_rho() == F_rho
+            True
+            sage: CuspForms(group=5, k=12).F_rho() == F_rho
+            True
+            sage: MF.set_disp_prec(3)
+            sage: F_rho
+            1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + O(q^3)
+
+            sage: ModularForms(k=4).F_rho() == ModularForms(k=4).E4()
+            True
+            sage: ModularForms(k=4).F_rho()
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
@@ -484,12 +958,44 @@ class FormsRing_abstract(Parent):
         Return the generator ``F_i`` of the graded ring of ``self``.
         Up to the group action ``F_i`` has exactly one simple zero at ``i``. ``F_i`` is
         normalized such that its first nontrivial Fourier coefficient is ``1``.
-        
+
         The polynomial variable ``y`` exactly corresponds to ``F_i``.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: MR = ModularFormsRing(group=7)
+            sage: F_i = MR.F_i()
+            sage: F_i in MR
+            True
+            sage: CuspFormsRing(group=7).F_i() == F_i
+            True
+            sage: F_i
+            f_i
+            sage: QMModularFormsRing(group=7).F_i() == QMModularFormsRing(group=7)(F_i)
+            True
+
+            sage: from space import ModularForms, CuspForms
+            sage: MF = ModularForms(group=5, k=10/3)
+            sage: F_i = MF.F_i()
+            sage: F_i in MF
+            True
+            sage: ModularFormsRing(group=5, red_hom=True).F_i() == F_i
+            True
+            sage: CuspForms(group=5, k=12).F_i() == F_i
+            True
+            sage: MF.set_disp_prec(3)
+            sage: F_i
+            1 - 13/(40*d)*q - 351/(64000*d^2)*q^2 + O(q^3)
+
+            sage: ModularForms(k=6).F_i() == ModularForms(k=4).E6()
+            True
+            sage: ModularForms(k=6).F_i()
+            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
@@ -505,6 +1011,36 @@ class FormsRing_abstract(Parent):
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, CuspFormsRing
+            sage: MR = CuspFormsRing(group=7)
+            sage: F_inf = MR.F_inf()
+            sage: F_inf in MR
+            True
+            sage: F_inf
+            f_rho^7*d - f_i^2*d
+            sage: QMModularFormsRing(group=7).F_inf() == QMModularFormsRing(group=7)(F_inf)
+            True
+
+            sage: from space import CuspForms
+            sage: MF = CuspForms(group=5, k=20/3)
+            sage: F_inf = MF.F_inf()
+            sage: F_inf in MF
+            True
+            sage: CuspFormsRing(group=5, red_hom=True).F_inf() == F_inf
+            True
+            sage: CuspForms(group=5, k=0).F_inf() == F_inf
+            True
+            sage: MF.set_disp_prec(3)
+            sage: F_inf
+            q - 9/(200*d)*q^2 + O(q^3)
+
+            sage: CuspForms(k=12).F_inf() == CuspForms(k=12).Delta()
+            True
+            sage: CuspForms(k=12).F_inf()
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
@@ -514,16 +1050,46 @@ class FormsRing_abstract(Parent):
     def G_inv(self):
         r"""
         If ``2`` divides ``n``: Return the G-invariant of the group of ``self``.
-        
+
         The G-invariant is analogous to the G-invariant but has multiplier ``-1``.
         I.e. ``G_inv(-1/t) = -G_inv(t)``. It is a holomorphic square root
         of ``J_inv*(J_inv-1)`` with real Fourier coefficients.
-        
+
         If ``2`` does not divide ``n`` the function doesn't exist and an exception is raised.
 
         It lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, WeakModularFormsRing, CuspFormsRing
+            sage: MR = WeakModularFormsRing(group=8)
+            sage: G_inv = MR.G_inv()
+            sage: G_inv in MR
+            True
+            sage: CuspFormsRing(group=8).G_inv() == G_inv
+            True
+            sage: G_inv
+            f_rho^4*f_i*d/(f_rho^8 - f_i^2)
+            sage: QMModularFormsRing(group=8).G_inv() == QMModularFormsRing(group=8)(G_inv)
+            True
+
+            sage: from space import WeakModularForms, CuspForms
+            sage: MF = WeakModularForms(group=8, k=0, ep=-1)
+            sage: G_inv = MF.G_inv()
+            sage: G_inv in MF
+            True
+            sage: WeakModularFormsRing(group=8, red_hom=True).G_inv() == G_inv
+            True
+            sage: CuspForms(group=8, k=12, ep=1).G_inv() == G_inv
+            True
+            sage: MF.set_disp_prec(3)
+            sage: G_inv
+            d^2*q^-1 - 15*d/128 - 15139/262144*q - 11575/(1572864*d)*q^2 + O(q^3)
+
+            sage: WeakModularForms(group=4, k=0, ep=-1).G_inv()
+            1/65536*q^-1 - 3/8192 - 955/16384*q - 49/32*q^2 - 608799/32768*q^3 - 659/4*q^4 + O(q^5)
         """
 
         if (ZZ(2).divides(self._group.n)):
@@ -536,16 +1102,46 @@ class FormsRing_abstract(Parent):
     def g_inv(self):
         r"""
         If ``2`` divides ``n``: Return the g-invariant of the group of ``self``.
-        
+
         The g-invariant is analogous to the j-invariant but has multiplier ``-1``.
         I.e. ``g_inv(-1/t) = -g_inv(t)``. It is a (normalized) holomorphic square root
         of ``J_inv*(J_inv-1)``, normalized such that its first nontrivial Fourier coefficient is ``1``.
-        
+
         If ``2`` does not divide ``n`` the function doesn't exist and an exception is raised.
 
         It lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, WeakModularFormsRing, CuspFormsRing
+            sage: MR = WeakModularFormsRing(group=8)
+            sage: g_inv = MR.g_inv()
+            sage: g_inv in MR
+            True
+            sage: CuspFormsRing(group=8).g_inv() == g_inv
+            True
+            sage: g_inv
+            f_rho^4*f_i/(f_rho^8*d - f_i^2*d)
+            sage: QMModularFormsRing(group=8).g_inv() == QMModularFormsRing(group=8)(g_inv)
+            True
+
+            sage: from space import WeakModularForms, CuspForms
+            sage: MF = WeakModularForms(group=8, k=0, ep=-1)
+            sage: g_inv = MF.g_inv()
+            sage: g_inv in MF
+            True
+            sage: WeakModularFormsRing(group=8, red_hom=True).g_inv() == g_inv
+            True
+            sage: CuspForms(group=8, k=12, ep=1).g_inv() == g_inv
+            True
+            sage: MF.set_disp_prec(3)
+            sage: g_inv
+            q^-1 - 15/(128*d) - 15139/(262144*d^2)*q - 11575/(1572864*d^3)*q^2 + O(q^3)
+
+            sage: WeakModularForms(group=4, k=0, ep=-1).g_inv()
+            q^-1 - 24 - 3820*q - 100352*q^2 - 1217598*q^3 - 10797056*q^4 + O(q^5)
         """
 
         if (ZZ(2).divides(self._group.n)):
@@ -563,6 +1159,38 @@ class FormsRing_abstract(Parent):
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: MR = ModularFormsRing(group=7)
+            sage: E4 = MR.E4()
+            sage: E4 in MR
+            True
+            sage: CuspFormsRing(group=7).E4() == E4
+            True
+            sage: E4
+            f_rho^5
+            sage: QMModularFormsRing(group=7).E4() == QMModularFormsRing(group=7)(E4)
+            True
+
+            sage: from space import ModularForms, CuspForms
+            sage: MF = ModularForms(group=5, k=4)
+            sage: E4 = MF.E4()
+            sage: E4 in MF
+            True
+            sage: ModularFormsRing(group=5, red_hom=True).E4() == E4
+            True
+            sage: CuspForms(group=5, k=12).E4() == E4
+            True
+            sage: MF.set_disp_prec(3)
+            sage: E4
+            1 + 21/(100*d)*q + 483/(32000*d^2)*q^2 + O(q^3)
+
+            sage: ModularForms(k=4).F_rho() == ModularForms(k=4).E4()
+            True
+            sage: ModularForms(k=4).E4()
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
@@ -577,6 +1205,38 @@ class FormsRing_abstract(Parent):
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: MR = ModularFormsRing(group=7)
+            sage: E6 = MR.E6()
+            sage: E6 in MR
+            True
+            sage: CuspFormsRing(group=7).E6() == E6
+            True
+            sage: E6
+            f_rho^4*f_i
+            sage: QMModularFormsRing(group=7).E6() == QMModularFormsRing(group=7)(E6)
+            True
+
+            sage: from space import ModularForms, CuspForms
+            sage: MF = ModularForms(group=5, k=6)
+            sage: E6 = MF.E6()
+            sage: E6 in MF
+            True
+            sage: ModularFormsRing(group=5, red_hom=True).E6() == E6
+            True
+            sage: CuspForms(group=5, k=12).E6() == E6
+            True
+            sage: MF.set_disp_prec(3)
+            sage: E6
+            1 - 37/(200*d)*q - 14663/(320000*d^2)*q^2 + O(q^3)
+
+            sage: ModularForms(k=6).F_i() == ModularForms(k=6).E6()
+            True
+            sage: ModularForms(k=6).E6()
+            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
@@ -592,6 +1252,40 @@ class FormsRing_abstract(Parent):
         It lies in a (cuspidal) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, CuspFormsRing
+            sage: MR = CuspFormsRing(group=7)
+            sage: Delta = MR.Delta()
+            sage: Delta in MR
+            True
+            sage: Delta
+            f_rho^15*d - f_rho^8*f_i^2*d
+            sage: QMModularFormsRing(group=7).Delta() == QMModularFormsRing(group=7)(Delta)
+            True
+
+            sage: from space import CuspForms, ModularForms
+            sage: MF = CuspForms(group=5, k=12)
+            sage: Delta = MF.Delta()
+            sage: Delta in MF
+            True
+            sage: CuspFormsRing(group=5, red_hom=True).Delta() == Delta
+            True
+            sage: CuspForms(group=5, k=0).Delta() == Delta
+            True
+            sage: MF.set_disp_prec(3)
+            sage: Delta
+            q + 47/(200*d)*q^2 + O(q^3)
+
+            sage: d = ModularForms(group=5).coeff_ring().gen()
+            sage: Delta == (d*(ModularForms(group=5).E4()^3-ModularForms(group=5).E6()^2))
+            True
+
+            sage: CuspForms(k=12).F_inf() == CuspForms(k=12).Delta()
+            True
+            sage: CuspForms(k=12).Delta()
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
@@ -607,6 +1301,40 @@ class FormsRing_abstract(Parent):
         It lies in a (quasi holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        EXAMPLES::
+
+            sage: from graded_ring import QMModularFormsRing, QModularFormsRing, CuspFormsRing
+            sage: MR = QModularFormsRing(group=7)
+            sage: E2 = MR.E2()
+            sage: E2 in MR
+            True
+            sage: CuspFormsRing(group=7).E2() == E2
+            True
+            sage: E2
+            E2
+            sage: QMModularFormsRing(group=7).E2() == QMModularFormsRing(group=7)(E2)
+            True
+
+            sage: from space import QModularForms, CuspForms
+            sage: MF = QModularForms(group=5, k=2)
+            sage: E2 = MF.E2()
+            sage: E2 in MF
+            True
+            sage: QModularFormsRing(group=5, red_hom=True).E2() == E2
+            True
+            sage: CuspForms(group=5, k=12, ep=1).E2() == E2
+            True
+            sage: MF.set_disp_prec(3)
+            sage: E2
+            1 - 9/(200*d)*q - 369/(320000*d^2)*q^2 + O(q^3)
+
+            sage: F_inf = MF.F_inf()
+            sage: E2 == F_inf.derivative() / F_inf
+            True
+
+            sage: QModularForms(k=2).E2()
+            1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()

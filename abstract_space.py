@@ -30,7 +30,11 @@ from series_constructor import MFSeriesConstructor
 class FormsSpace_abstract(FormsRing_abstract):
     r"""
     Abstract (Hecke) forms space.
+
+    This should never be called directly. Instead one should
+    instantiate one of the derived classes of this class. 
     """
+
     from element import FormsElement
     Element = FormsElement
 
@@ -79,16 +83,6 @@ class FormsSpace_abstract(FormsRing_abstract):
         from sage.misc.latex import latex
         return "{}_{{ n={} }}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._group.n, self._weight, self._ep, latex(self._base_ring))
 
-    def __cmp__(self, other):
-        r"""
-        Compare ``self`` and ``right``.
-        """
-
-        if (super(FormsSpace_abstract, self).__cmp__(other)==0 and self._weight==other._weight and self._ep==other._ep):
-            return 0
-        else:
-            return -1
-
     def _element_constructor_(self, x):
         r"""
         Return ``x`` coerced into this forms space.
@@ -118,7 +112,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return self.element_class(self, x)
 
-    def _coerce_map_from_(self,S):
+    def _coerce_map_from_(self, S):
         r"""
         Return whether or not there exists a coercion from ``S`` to ``self``.
         """
@@ -185,7 +179,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         Return the same space as ``self`` but over a new base ring ``new_base_ring``.
         """
 
-        return self.__class__.__base__(self.group(), new_base_ring, True, self.weight(), self.ep())
+        return self.__class__.__base__(self.group(), new_base_ring, self.weight(), self.ep())
 
     def construction(self):
         r"""
