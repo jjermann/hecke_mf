@@ -101,19 +101,6 @@ class FormsRing_abstract(Parent):
         self.disp_prec(5)
         self.default_num_prec(53)
 
-        # We only use two operators for now which do not involve 'd', so for performance
-        # reason we choose FractionField(base_ring) instead of self.coeff_ring().
-        self._free_alg            = FreeAlgebra(FractionField(ZZ),6,'X,Y,Z,dX,dY,dZ')
-        (X,Y,Z,dX,dY,dZ)          = self._free_alg.gens()
-        self._diff_alg            = self._free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})
-        (X,Y,Z,dX,dY,dZ)          = self._diff_alg.gens()
-        self._derivative_op       =   1/self._group.n * (X*Z-Y)*dX\
-                                    + ZZ(1)/ZZ(2) * (Y*Z-X**(self._group.n-1))*dY\
-                                    + (self._group.n-2) / (4*self._group.n) * (Z**2-X**(self._group.n-2))*dZ
-        self._serre_derivative_op = - 1/self._group.n * Y*dX\
-                                    - ZZ(1)/ZZ(2) * X**(self._group.n-1)*dY\
-                                    - (self._group.n-2) / (4*self._group.n) * (Z**2+X**(self._group.n-2))*dZ
-
         #super(FormsRing_abstract, self).__init__(self.coeff_ring())
 
     def _repr_(self):
@@ -207,6 +194,26 @@ class FormsRing_abstract(Parent):
             return True
         else:
             return False
+
+    def _an_element_(self):
+        r"""
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: from graded_ring import CuspFormsRing
+            sage: from space import WeakModularForms
+            sage: CuspFormsRing()._an_element_()
+            f_rho^3*d - f_i^2*d
+            sage: _ == CuspFormsRing().Delta()
+            True
+            sage: WeakModularForms()._an_element_()
+            O(q^5)
+            sage: _ == WeakModularForms().zero()
+            True
+        """
+
+        return self(self.Delta())
 
     def default_prec(self, prec = None):
         r"""
@@ -307,26 +314,6 @@ class FormsRing_abstract(Parent):
             self._num_prec = ZZ(prec)
         else:
             return self._num_prec
-
-    def _an_element_(self):
-        r"""
-        Return an element of ``self``.
-
-        EXAMPLES::
-
-            sage: from graded_ring import CuspFormsRing
-            sage: from space import WeakModularForms
-            sage: CuspFormsRing()._an_element_()
-            f_rho^3*d - f_i^2*d
-            sage: _ == CuspFormsRing().Delta()
-            True
-            sage: WeakModularForms()._an_element_()
-            O(q^5)
-            sage: _ == WeakModularForms().zero()
-            True
-        """
-
-        return self(self.Delta())
 
     def change_ring(self, new_base_ring):
         r"""
@@ -608,7 +595,49 @@ class FormsRing_abstract(Parent):
             Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1, dX*X: X*dX + 1}
         """
 
-        return self._diff_alg
+        # We only use two operators for now which do not involve 'd', so for performance
+        # reason we choose FractionField(base_ring) instead of self.coeff_ring().
+        free_alg         = FreeAlgebra(FractionField(ZZ),6,'X,Y,Z,dX,dY,dZ')
+        (X,Y,Z,dX,dY,dZ) = free_alg.gens()
+        diff_alg         = free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})
+        
+        return diff_alg
+
+    @cached_method
+    def _derivative_op(self):
+        r"""
+        Return the differential operator in ``self.diff_alg()``
+        corresponding to the derivative of forms.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing(group=7)._derivative_op()
+            -1/2*X^6*dY - 5/28*X^5*dZ + 1/7*X*Z*dX + 1/2*Y*Z*dY + 5/28*Z^2*dZ - 1/7*Y*dX
+        """
+
+        (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
+        return   1/self._group.n * (X*Z-Y)*dX\
+               + ZZ(1)/ZZ(2) * (Y*Z-X**(self._group.n-1))*dY\
+               + (self._group.n-2) / (4*self._group.n) * (Z**2-X**(self._group.n-2))*dZ
+
+    @cached_method
+    def _serre_derivative_op(self):
+        r"""
+        Return the differential operator in ``self.diff_alg()``
+        corresponding to the serre derivative of forms.
+
+        EXAMPLES::
+
+            sage: from graded_ring import ModularFormsRing
+            sage: ModularFormsRing(group=8)._serre_derivative_op()
+            -1/2*X^7*dY - 3/16*X^6*dZ - 3/16*Z^2*dZ - 1/8*Y*dX
+        """
+
+        (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
+        return - 1/self._group.n * Y*dX\
+               - ZZ(1)/ZZ(2) * X**(self._group.n-1)*dY\
+               - (self._group.n-2) / (4*self._group.n) * (Z**2+X**(self._group.n-2))*dZ
 
     @cached_method
     def has_reduce_hom(self):

@@ -818,8 +818,8 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: (X,Y,Z,dX,dY,dZ) = MR.diff_alg().gens()
             sage: n=MR.hecke_n()
             sage: mul_op = 4/(n-2)*X*dX + 2*n/(n-2)*Y*dY + 2*Z*dZ
-            sage: der_op = MR._derivative_op
-            sage: ser_op = MR._serre_derivative_op
+            sage: der_op = MR._derivative_op()
+            sage: ser_op = MR._serre_derivative_op()
             sage: der_op == ser_op + (n-2)/(4*n)*Z*mul_op
             True
             
@@ -902,7 +902,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             QuasiModularForms(n=7, k=4, ep=1) over Integer Ring
         """
 
-        return self.diff_op(self.parent()._derivative_op, self.parent().extend_type("quasi", ring=True))
+        return self.diff_op(self.parent()._derivative_op(), self.parent().extend_type("quasi", ring=True))
 
     def serre_derivative(self):
         r"""
@@ -948,7 +948,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             ModularForms(n=7, k=8, ep=1) over Integer Ring
         """
 
-        return self.diff_op(self.parent()._serre_derivative_op, self.parent().extend_type(ring=True))
+        return self.diff_op(self.parent()._serre_derivative_op(), self.parent().extend_type(ring=True))
 
     @cached_method
     def order_inf(self):
