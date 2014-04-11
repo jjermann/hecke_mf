@@ -1,8 +1,8 @@
-Hecke modular forms for sage
-============================
+Hecke modular forms
+===================
 
-An (initial) implementation of Hecke modular forms for sage:
-------------------------------------------------------------
+An (initial) implementation of for sage:
+----------------------------------------
 
   * At the moment: Only support for forms with respect to
     the full Hecke triangle group for `n=3, 4, 5, ...`
@@ -64,8 +64,10 @@ An (initial) implementation of Hecke modular forms for sage:
 
   * Documentation of all functions and methods.
 
+  * Doctests for abstract_ring.py and graded_ring_element.py
+
 
 Planned:
 --------
 
-  * (doc) tests, examples
+  * Further doctests
