@@ -37,14 +37,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, prec=ZZ(10), fix_d=False, d_num_prec=ZZ(53)):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, prec=ZZ(10), fix_d=False, set_d=None, d_num_prec=ZZ(53)):
         r"""
         Return a (cached) instance with canonical parameters.
 
-        In particular in case ``fix_d != False`` the ``base_ring``
-        is replaced by the common parent of ``base_ring`` and the
-        parent of ``fix_d`` (resp. the numerical value of ``d``
-        in case ``fix_d=True``).
+        In particular in case ``fix_d = True`` or if ``set_d`` is
+        set then the ``base_ring`` is replaced by the common parent
+        of ``base_ring`` and the parent of ``set_d`` (resp. the
+        numerical value of ``d`` in case ``fix_d=True``).
         """
 
         if (group==infinity):
@@ -58,30 +58,27 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         #if (prec<1):
         #    raise Exception("prec must be an Integer >=1")
 
-        # If fix_d==True (bool), then we set d to the correct d with precision d_num_prec
-        # except if n=3,4,6 in which case it is given exactly.
+        fix_d = bool(fix_d)
         if (fix_d):
-            if (isinstance(fix_d,bool)):
-                n=group.n
-                d=group.dvalue()
-                if (group.is_arithmetic()):
-                    d_num_prec=None
-                    fix_d=1/base_ring(1/d)
-                else:
-                    d_num_prec=ZZ(d_num_prec)
-                    fix_d=group.dvalue().n(d_num_prec)
+            n = group.n
+            d = group.dvalue()
+            if (group.is_arithmetic()):
+                d_num_prec = None
+                set_d = 1/base_ring(1/d)
             else:
-                d_num_prec=None
+                d_num_prec = ZZ(d_num_prec)
+                set_d = group.dvalue().n(d_num_prec)
+        else:
+            d_num_prec = None
 
-            base_ring=(base_ring(1)*fix_d).parent()
+        if (set_d is not None):
+            base_ring=(base_ring(1)*set_d).parent()
         #elif (not base_ring.is_exact()):
         #    raise NotImplementedError
-        else:
-            d_num_prec=None
 
-        return super(MFSeriesConstructor,cls).__classcall__(cls, group, base_ring, prec, fix_d, d_num_prec)
+        return super(MFSeriesConstructor,cls).__classcall__(cls, group, base_ring, prec, fix_d, set_d, d_num_prec)
 
-    def __init__(self, group, base_ring, prec, fix_d, d_num_prec):
+    def __init__(self, group, base_ring, prec, fix_d, set_d, d_num_prec):
         r"""
         Constructor for the Fourier expansion of some
         (specific, basic) modular forms.
@@ -89,10 +86,13 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         INPUT:
 
         - ``group``       - A Hecke triangle group (default: HeckeTriangleGroup(3)).
+
         - ``base_ring``   - The base ring (default: ZZ)
+
         - ``prec``        - An integer (default: 10), the default precision used
                             in calculations in the LaurentSeriesRing or PowerSeriesRing.
-        - ``fix_d``       - ``True``, ``False`` or a number.
+
+        - ``fix_d``       - ``True`` or ``False`` (default: ``False``).
 
                             If ``fix_d == False`` the base ring of the power series
                             is (the fraction field) of the polynomial ring over the base
@@ -104,11 +104,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
                             or LaurentSeriesRing is changed to a common parent of
                             ``base_ring`` and the parent of the mentioned value ``d``.
 
-                            If ``fix_d`` is a number the formal parameter ``d`` is
-                            replaced by that number and the base ring of the PowerSeriesRing
-                            or LaurentSeriesRing is changed to a common parent of ``base_ring``
+        - ``set_d``       - A number which replaces the formal parameter ``d``.
+                            The base ring of the PowerSeriesRing or LaurentSeriesRing is
+                            changed to a common parent of ``base_ring``
                             and the parent of the specified value for ``d``.
-                            Note that in particular ``fix_d=1`` will produce
+                            Note that in particular ``set_d=1`` will produce
                             rational Fourier expansions.
 
         - ``d_num_prec``  - An integer, a lower bound for the precision of the
@@ -123,11 +123,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         self._base_ring      = base_ring
         self._prec           = prec
         self._fix_d          = fix_d
+        self._set_d          = set_d
         self._d_num_prec     = d_num_prec
 
-        if (fix_d):
+        if (set_d):
             self._coeff_ring = FractionField(base_ring)
-            self._d          = fix_d
+            self._d          = set_d
         else:
             self._coeff_ring = FractionField(PolynomialRing(base_ring,"d"))
             self._d          = self._coeff_ring.gen()
@@ -140,7 +141,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the string representation of ``self``.
         """
 
-        if (self._fix_d):
+        if (self._set_d):
             return "Power series constructor for Hecke modular forms for n={}, base ring={} with (basic series) precision {} with parameter d={}".\
                 format(self._group.n, self._base_ring, self._prec, self._d)
         else:
@@ -178,12 +179,24 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
     def fix_d(self):
         r"""
-        Return whether the formal parameter ``d`` will be
-        substituted by a fixed (possibly numerical)
-        value or not.
+        Return whether the numerical value for the parameter
+        ``d`` will be substituted or not.
+        
+        Note: Depending on whether ``set_d`` is ``None`` or
+        not ``d`` might still be substituted despite ``fix_d``
+        being ``False``.
         """
 
-        return bool(self._fix_d)
+        return self._fix_d
+
+    def set_d(self):
+        r"""
+        Return the numerical value which is substituted for
+        the parameter ``d``. Default: ``None``, meaning
+        the formal parameter ``d`` is used.
+        """
+
+        return self._set_d
 
     def is_exact(self):
         r"""
@@ -195,7 +208,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     def d(self):
         r"""
         Return the formal parameter ``d`` respectively
-        its (possibly numerical) value in case ``fix_d=True``.
+        its (possibly numerical) value in case ``set_d``
+        is not ``None``.
         """
 
         return self._d

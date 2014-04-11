@@ -16,7 +16,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, QQ, infinity
+from sage.symbolic.all import i
+from sage.rings.all import ZZ, QQ, infinity, AlgebraicField
 from sage.rings.power_series_ring import is_PowerSeriesRing
 from sage.rings.laurent_series_ring import is_LaurentSeriesRing
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -339,7 +340,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return new_space(rat)
 
-    def Faber_pol(self, m, fix_d=False, d_num_prec=None):
+    def Faber_pol(self, m, fix_d=False, set_d=None, d_num_prec=None):
         r"""
         Return the ``m``'th Faber polynomial of ``self``.
 
@@ -356,15 +357,17 @@ class FormsSpace_abstract(FormsRing_abstract):
         - ``fix_d``        - ``True`` if the value of ``d`` should be
                              (numerically) substituted for the coefficients
                              of the polynomial (default: ``False``).
+        - ``set_d``        - The value which should be substituted for ``d`` (default: ``None``).
+                             The value is ignored if ``fix_d=True``.                             
         - ``d_num_prec``   - The numerical precision to be used for ``d``
-                             in case ``fix_d`` is ``True``.
+                             in case ``fix_d=True`` or ``set_d`` is set,
                              Default: ``None``, in which case the default
                              numerical precision ``self.num_prec()`` is used.
 
         OUTPUT:
 
         The corresponding Faber polynomial P(q) with coefficients in ``self.coeff_ring()``
-        resp. a numerical ring in case ``fix_d`` is ``True``
+        resp. a numerical ring in case ``fix_d=True`` or ``set_d`` is set
         (and the group of ``self`` is not arithmetic).
         """
 
@@ -375,13 +378,13 @@ class FormsSpace_abstract(FormsRing_abstract):
             d_num_prec = self._num_prec
 
         prec          = 2*self._l1+m+1
-        SC            = MFSeriesConstructor(self._group, self.base_ring(), prec,fix_d, d_num_prec)
+        SC            = MFSeriesConstructor(self._group, self.base_ring(), prec, fix_d, set_d, d_num_prec)
         q             = SC.q()
         d             = SC.d()
         qseries_ring  = SC.qseries_ring()
 
-        simple_qexp   = self.F_simple().q_expansion(prec=prec, fix_d=fix_d, d_num_prec=d_num_prec)
-        J_qexp        = self.J_inv().q_expansion(prec=m + self._l1, fix_d=fix_d, d_num_prec=d_num_prec)
+        simple_qexp   = self.F_simple().q_expansion(prec=prec, fix_d=fix_d, set_d=set_d, d_num_prec=d_num_prec)
+        J_qexp        = self.J_inv().q_expansion(prec=m + self._l1, fix_d=fix_d, set_d=set_d, d_num_prec=d_num_prec)
 
         # The precision could be infinity, otherwise we could do this:
         #assert(temp_reminder.prec() == 1)
@@ -402,7 +405,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         return fab_pol.polynomial()
 
     # very similar to Faber_pol: faber_pol(q)=Faber_pol(d*q)
-    def faber_pol(self, m, fix_d=False, d_num_prec=None):
+    def faber_pol(self, m, fix_d=False, set_d=None, d_num_prec=None):
         r"""
         Return the ``m``'th Faber polynomial of ``self``
         with a different normalization based on ``j_inv``
@@ -420,15 +423,17 @@ class FormsSpace_abstract(FormsRing_abstract):
         - ``fix_d``        - ``True`` if the value of ``d`` should be
                              (numerically) substituted for the coefficients
                              of the polynomial (default: ``False``).
+        - ``set_d``        - The value which should be substituted for ``d`` (default: ``None``).
+                             The value is ignored if ``fix_d=True``.                             
         - ``d_num_prec``   - The numerical precision to be used for ``d``
-                             in case ``fix_d`` is ``True``.
+                             in case ``fix_d=True`` or ``set_d`` is set,
                              Default: ``None``, in which case the default
                              numerical precision ``self.num_prec()`` is used.
 
         OUTPUT:
 
         The corresponding Faber polynomial p(q) with coefficients in ``self.coeff_ring()``
-        resp. a numerical ring in case ``fix_d`` is ``True``
+        resp. a numerical ring in case ``fix_d=True`` or ``set_d`` is set
         (and the group of ``self`` is not arithmetic).
         """
 
@@ -439,13 +444,13 @@ class FormsSpace_abstract(FormsRing_abstract):
             d_num_prec = self._num_prec
 
         prec          = 2*self._l1+m+1
-        SC            = MFSeriesConstructor(self._group, self.base_ring(), prec,fix_d, d_num_prec)
+        SC            = MFSeriesConstructor(self._group, self.base_ring(), prec, fix_d, set_d, d_num_prec)
         q             = SC.q()
         d             = SC.d()
         qseries_ring  = SC.qseries_ring()
 
-        simple_qexp   = self.F_simple().q_expansion(prec=prec, fix_d=fix_d, d_num_prec=d_num_prec)
-        j_qexp        = self.j_inv().q_expansion(prec=m + self._l1, fix_d=fix_d, d_num_prec=d_num_prec)
+        simple_qexp   = self.F_simple().q_expansion(prec=prec, fix_d=fix_d, set_d=set_d, d_num_prec=d_num_prec)
+        j_qexp        = self.j_inv().q_expansion(prec=m + self._l1, fix_d=fix_d, set_d=set_d, d_num_prec=d_num_prec)
 
         # The precision could be infinity, otherwise we could do this:
         #assert(temp_reminder.prec() == 1)

@@ -112,7 +112,7 @@ class FormsRing_abstract(Parent):
                                     + (self._group.n-2) / (4*self._group.n) * (Z**2-X**(self._group.n-2))*dZ
         self._serre_derivative_op = - 1/self._group.n * Y*dX\
                                     - ZZ(1)/ZZ(2) * X**(self._group.n-1)*dY\
-                                    - (self._group.n-2) / (4*self._group.n) * (Z**2-X**(self._group.n-2))*dZ
+                                    - (self._group.n-2) / (4*self._group.n) * (Z**2+X**(self._group.n-2))*dZ
 
         #super(FormsRing_abstract, self).__init__(self.coeff_ring())
 

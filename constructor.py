@@ -139,7 +139,6 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
         if (dhom(denom).is_constant()):
             analytic_type = analytic_type.reduce_to(["quasi", "weak"])
 
-
     return (elem, homo, weight, ep, analytic_type)
 
 
