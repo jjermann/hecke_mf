@@ -1164,7 +1164,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         - ``prec``        - An integer, the desired output precision O(q^prec).
 
-        - ``fix_d``       - If ``True`` is used then the numerical value of d
+        - ``fix_d``       - If ``True`` then the numerical value of d
                             corresponding to n will be used.
                             If n = 3, 4, 6 the used value is exact.
                             The base_ring will be changed accordingly (if possible).
@@ -1225,7 +1225,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             qexp = self._rat.subs(x=X,y=Y,z=Z,d=D)
         return (qexp + O(q**prec)).parent()(qexp)
 
-    def q_expansion(self, prec = None, fix_d = False, d_num_prec = None, fix_prec = False):
+    def q_expansion(self, prec = None, fix_d = False, set_d=None, d_num_prec = None, fix_prec = False):
         """
         Returns the Fourier expansion of self.
 
@@ -1235,11 +1235,16 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                             Default: ``None`` in which case the default precision
                             of ``self.parent()`` is used.
 
-        - ``fix_d``       - ``False`` (default) or a value to substitute for d.
-                            The base_ring will be changed accordingly (if possible).
-                            If ``True`` is used then the numerical value of d
-                            corresponding to n will be used.
+        - ``fix_d``       - If ``True`` then the numerical value of d corresponding to n
+                            will be used (default: ``False``).
                             If n = 3, 4, 6 the used value is exact.
+                            The base_ring will be changed accordingly (if possible).
+                            Alternatively also a value as in ``set_d`` can be specified.
+                            Also see ``MFSeriesConstructor``.
+
+        - ``set_d``       - ``None`` (default) or a value to substitute for d.
+                            The base_ring will be changed accordingly (if possible).
+                            Also see ``MFSeriesConstructor``.
 
         - ``d_num_prec``  - The precision to be used if a numerical value for d is substituted.
                             Default: ``None`` in which case the default
@@ -1295,8 +1300,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         
         if isinstance(fix_d,bool) and (fix_d == True):
             set_d = None
-        else:
+        elif set_d is None:
             set_d = fix_d
+            fix_d = False
+        else:
             fix_d = False
 
         return self._q_expansion_cached(prec, fix_d, set_d, d_num_prec, fix_prec)
@@ -1343,7 +1350,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: WeakModularFormsRing()((x+1)/(x^3-y^2)).q_expansion_fixed_d(prec=2)
             1/864*q^-1 + 1/6 + 119/24*q + O(q^2)
         """
-        return self.q_expansion(prec, True, d_num_prec, fix_prec)
+        return self.q_expansion(prec, True, None, d_num_prec, fix_prec)
 
     def __call__(self, tau, prec = None, num_prec = None):
         r"""
