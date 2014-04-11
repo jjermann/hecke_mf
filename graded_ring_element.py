@@ -148,7 +148,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: from graded_ring import QModularFormsRing
             sage: (x,y,z,d)=var("x,y,z,d")
             sage: MR = QModularFormsRing(group=5)
-            sage: MR.set_disp_prec(3)
+            sage: MR.disp_prec(3)
             sage: MR(x^3*z-d*y)._qexp_repr()
             '-d + 1 + ((65*d + 33)/(200*d))*q + ((1755*d + 1437)/(320000*d^2))*q^2 + O(q^3)'
         """

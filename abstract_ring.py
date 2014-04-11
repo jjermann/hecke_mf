@@ -97,9 +97,9 @@ class FormsRing_abstract(Parent):
         self._ep                  = None
         self._analytic_type       = self.AT(["quasi", "mero"])
 
-        self.set_default_prec()
-        self.set_disp_prec(5)
-        self.set_default_num_prec()
+        self.default_prec(10)
+        self.disp_prec(5)
+        self.default_num_prec(53)
 
         # We only use two operators for now which do not involve 'd', so for performance
         # reason we choose FractionField(base_ring) instead of self.coeff_ring().
@@ -208,94 +208,86 @@ class FormsRing_abstract(Parent):
         else:
             return False
 
-    def set_default_prec(self, prec = ZZ(10)):
+    def default_prec(self, prec = None):
         r"""
-        Set the default precision ``prec`` for the Fourier expansion (default: ``10``).
-        Note that this is also used as the default precision for the Fourier expansion
-        when evaluating forms.
+        Set the default precision ``prec`` for the Fourier expansion.
+        If ``prec=None`` (default) then the current default precision is returned instead.
+
+        Note: This is also used as the default precision for
+        the Fourier expansion when evaluating forms.
 
         EXAMPLES::
 
             sage: from graded_ring import ModularFormsRing
             sage: from space import ModularForms
             sage: MR = ModularFormsRing()
-            sage: MR.set_default_prec(3)
+            sage: MR.default_prec(3)
+            sage: MR.default_prec()
+            3
             sage: MR.Delta().q_expansion_fixed_d()
             q - 24*q^2 + O(q^3)
             sage: MF = ModularForms(k=4)
-            sage: MF.set_default_prec(2)
+            sage: MF.default_prec(2)
             sage: MF.E4()
             1 + 240*q + O(q^2)
-        """
-
-        self._prec = ZZ(prec)
-
-    def default_prec(self):
-        r"""
-        Returns the default precision for the Fourier expansion of ``self``.
-
-        EXAMPLES::
-
-            sage: from space import ModularForms
-            sage: MF = ModularForms()
             sage: MF.default_prec()
-            10
+            2
         """
 
-        return self._prec
+        if (prec is not None):
+            self._prec = ZZ(prec)
+        else:
+            return self._prec
 
-    def set_disp_prec(self, disp_prec = None):
+    def disp_prec(self, prec = None):
         r"""
-        Set the maximal precision ``disp_prec`` used for displaying (elements of) ``self``
-        as a Fourier expansion. If ``disp_prec`` is ``None`` (default) then the
-        default precision is used.
+        Set the maximal display precision to ``prec``.
+        If ``prec="max"`` the precision is set to the default precision.
+        If ``prec=None`` (default) then the current display precision is returned instead.
+
+        Note: This is used for displaying/representing (elements of)
+        ``self`` as Fourier expansions.
 
         EXAMPLES::
 
             sage: from space import ModularForms
             sage: MF = ModularForms(k=4)
-            sage: MF.set_default_prec(5)
-            sage: MF.set_disp_prec(3)
+            sage: MF.default_prec(5)
+            sage: MF.disp_prec(3)
+            sage: MF.disp_prec()
+            3
             sage: MF.E4()
             1 + 240*q + 2160*q^2 + O(q^3)
-            sage: MF.set_disp_prec()
+            sage: MF.disp_prec("max")
             sage: MF.E4()
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + O(q^5)
         """
 
-        if (disp_prec == None):
-            disp_prec = self._prec;
-        self._disp_prec = ZZ(disp_prec)
+        if (prec == "max"):
+            self._disp_prec = self._prec;
+        elif (prec is not None):
+            self._disp_prec = ZZ(prec)
+        else:
+            return self._disp_prec
 
-    def default_disp_prec(self):
+    def default_num_prec(self, prec = None):
         r"""
-        Returns the default display precision for Fourier expansion representations
-        of (elements of) ``self``.
-
-        EXAMPLES::
-
-            sage: from space import CuspForms
-            sage: MF = CuspForms(k=12)
-            sage: MF.default_disp_prec()
-            5
-        """
-
-        return self._disp_prec
-
-    def set_default_num_prec(self, num_prec = ZZ(53)):
-        r"""
-        Set the default numerical precision ``num_prec`` (default: ``53``).
+        Set the default numerical precision to ``prec`` (default: ``53``).
+        If ``prec=None`` (default) the current default numerical
+        precision is returned instead.
 
         EXAMPLES::
 
             sage: from space import ModularForms
             sage: MF = ModularForms(k=6)
-            sage: MF.set_default_prec(20)
-            sage: MF.set_default_num_prec(10)
+            sage: MF.default_prec(20)
+            sage: MF.default_num_prec(10)
+            sage: MF.default_num_prec()
+            10
             sage: E6 = MF.E6()
             sage: E6(i)                                   # rel tol 1e-4
             -0.0020
-            sage: MF.set_default_num_prec(100)
+            sage: MF.default_num_prec(100)
             sage: E6(i)                                   # rel tol 1e-25
             0.00000000000000000000000000000
 
@@ -303,29 +295,18 @@ class FormsRing_abstract(Parent):
             sage: F_rho = MF.F_rho()
             sage: F_rho.q_expansion(prec=2)[1]
             7/(100*d)
-            sage: MF.set_default_num_prec(10)
+            sage: MF.default_num_prec(10)
             sage: F_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-1
             9.9
-            sage: MF.set_default_num_prec(100)
+            sage: MF.default_num_prec(100)
             sage: F_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-25
             9.9259324351079591527601778294
         """
 
-        self._num_prec = ZZ(num_prec)
-
-    def default_num_prec(self):
-        r"""
-        Returns the default numerical precision of ``self``.
-
-        EXAMPLES::
-
-            sage: from space import WeakModularForms
-            sage: MF = WeakModularForms()
-            sage: MF.default_num_prec()
-            53
-        """
-
-        return self._num_prec
+        if (prec is not None):
+            self._num_prec = ZZ(prec)
+        else:
+            return self._num_prec
 
     def _an_element_(self):
         r"""
@@ -847,7 +828,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=5, k=12).J_inv() == J_inv
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: J_inv
             d*q^-1 + 79/200 + 42877/(640000*d)*q + 12957/(2000000*d^2)*q^2 + O(q^3)
 
@@ -892,7 +873,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=5, k=12).j_inv() == j_inv
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: j_inv
             q^-1 + 79/(200*d) + 42877/(640000*d^2)*q + 12957/(2000000*d^3)*q^2 + O(q^3)
 
@@ -939,7 +920,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=5, k=12).F_rho() == F_rho
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: F_rho
             1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + O(q^3)
 
@@ -988,7 +969,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=5, k=12).F_i() == F_i
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: F_i
             1 - 13/(40*d)*q - 351/(64000*d^2)*q^2 + O(q^3)
 
@@ -1033,7 +1014,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=5, k=0).F_inf() == F_inf
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: F_inf
             q - 9/(200*d)*q^2 + O(q^3)
 
@@ -1084,7 +1065,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=8, k=12, ep=1).G_inv() == G_inv
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: G_inv
             d^2*q^-1 - 15*d/128 - 15139/262144*q - 11575/(1572864*d)*q^2 + O(q^3)
 
@@ -1136,7 +1117,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=8, k=12, ep=1).g_inv() == g_inv
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: g_inv
             q^-1 - 15/(128*d) - 15139/(262144*d^2)*q - 11575/(1572864*d^3)*q^2 + O(q^3)
 
@@ -1183,7 +1164,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=5, k=12).E4() == E4
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: E4
             1 + 21/(100*d)*q + 483/(32000*d^2)*q^2 + O(q^3)
 
@@ -1229,7 +1210,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=5, k=12).E6() == E6
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: E6
             1 - 37/(200*d)*q - 14663/(320000*d^2)*q^2 + O(q^3)
 
@@ -1274,7 +1255,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=5, k=0).Delta() == Delta
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: Delta
             q + 47/(200*d)*q^2 + O(q^3)
 
@@ -1325,7 +1306,7 @@ class FormsRing_abstract(Parent):
             True
             sage: CuspForms(group=5, k=12, ep=1).E2() == E2
             True
-            sage: MF.set_disp_prec(3)
+            sage: MF.disp_prec(3)
             sage: E2
             1 - 9/(200*d)*q - 369/(320000*d^2)*q^2 + O(q^3)
 
