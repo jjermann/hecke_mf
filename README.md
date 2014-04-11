@@ -1,8 +1,8 @@
 Hecke modular forms
 ===================
 
-An (initial) implementation of for sage:
-----------------------------------------
+An implementation for sage:
+---------------------------
 
   * At the moment: Only support for forms with respect to
     the full Hecke triangle group for `n=3, 4, 5, ...`
