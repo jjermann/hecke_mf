@@ -4,6 +4,8 @@ Hecke modular forms
 An implementation for sage:
 ---------------------------
 
+  * Trac ticket: http://trac.sagemath.org/ticket/16134
+
   * At the moment: Only support for forms with respect to
     the full Hecke triangle group for `n=3, 4, 5, ...`
 
@@ -62,12 +64,17 @@ An implementation for sage:
     that support coordinate vectors, together with coordinate
     vectors for subspaces.
 
-  * Documentation of all functions and methods.
+  * Complete documentation of all functions and methods.
 
-  * Doctests for abstract_ring.py and graded_ring_element.py
+  * Complete doctests for:
+      * abstract_ring.py
+      * abstract_space.py
+      * graded_ring_element.py
+      * element.py
+      * graded_ring.py
 
 
 Planned:
 --------
 
-  * Further doctests
+  * Remaining doctests
