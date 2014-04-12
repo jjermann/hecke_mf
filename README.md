@@ -74,6 +74,7 @@ An implementation for sage:
       * graded_ring.py
       * space.py
       * subspace.py
+      * hecke_triangle_groups.py
 
 
 Planned:

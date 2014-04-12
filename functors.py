@@ -307,7 +307,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
         Return the string representation of ``self``.
         """
 
-        return "{}FormsFunctor(n={}, k={}, ep={})".format(self._analytic_type.analytic_space_name(), self._group.n, self._k, self._ep)
+        return "{}FormsFunctor(n={}, k={}, ep={})".format(self._analytic_type.analytic_space_name(), self._group.n(), self._k, self._ep)
 
     def merge(self, other):
         r"""
@@ -445,7 +445,7 @@ class FormsRingFunctor(ConstructionFunctor):
             red_arg = ", red_hom=True"
         else:
             red_arg = ""
-        return "{}FormsRingFunctor(n={}{})".format(self._analytic_type.analytic_space_name(), self._group.n, red_arg)
+        return "{}FormsRingFunctor(n={}{})".format(self._analytic_type.analytic_space_name(), self._group.n(), red_arg)
 
     def merge(self, other):
         r"""

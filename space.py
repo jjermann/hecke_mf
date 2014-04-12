@@ -44,9 +44,9 @@ def canonical_parameters(group, base_ring, k, ep):
         try: 
             group = HeckeTriangleGroup(ZZ(group))
         except TypeError:
-            group = HeckeTriangleGroup(group.n)
+            group = HeckeTriangleGroup(group.n())
 
-    n = group.n
+    n = group.n()
     k = QQ(k)
     if (ep == None):   
         ep = (-1)**(k*ZZ(n-2)/ZZ(2))

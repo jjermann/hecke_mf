@@ -43,7 +43,7 @@ def canonical_parameters(group, base_ring, red_hom):
         try: 
             group = HeckeTriangleGroup(ZZ(group))
         except TypeError:
-            group = HeckeTriangleGroup(group.n)
+            group = HeckeTriangleGroup(group.n())
 
     red_hom = bool(red_hom)
 

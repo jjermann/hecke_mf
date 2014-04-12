@@ -99,7 +99,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             QuasiModularForms(n=4, k=2, ep=-1) over Integer Ring
         """
 
-        return "{}Forms(n={}, k={}, ep={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n, self._weight, self._ep, self._base_ring)
+        return "{}Forms(n={}, k={}, ep={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n(), self._weight, self._ep, self._base_ring)
 
     def _latex_(self):
         r"""
@@ -113,7 +113,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         from sage.misc.latex import latex
-        return "{}_{{ n={} }}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._group.n, self._weight, self._ep, latex(self._base_ring))
+        return "{}_{{ n={} }}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._group.n(), self._weight, self._ep, latex(self._base_ring))
 
     def _element_constructor_(self, x):
         r"""
@@ -582,7 +582,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
-        n = self._group.n
+        n = self._group.n()
         k = self._weight
         ep = self._ep
         num = (k-(1-ep)*ZZ(n)/ZZ(n-2))*ZZ(n-2)/ZZ(4)
@@ -621,8 +621,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: from space import ModularForms
             sage: MF = ModularForms(group=8, k=4, ep=1)
             sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4
-            sage: T = MF.group().T
-            sage: S = MF.group().S
+            sage: T = MF.group().T()
+            sage: S = MF.group().S()
             sage: z = AlgebraicField()(1+i/2)
 
             sage: MF.aut_factor(S, z)
@@ -639,8 +639,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
 
             sage: MF = ModularForms(group=7, k=14/5, ep=-1)
-            sage: T = MF.group().T
-            sage: S = MF.group().S
+            sage: T = MF.group().T()
+            sage: S = MF.group().S()
             sage: z = AlgebraicField()(1+i/2)
 
             sage: MF.aut_factor(S, z)
@@ -651,9 +651,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
-        if (gamma == self._group.T or gamma == self._group.T.inverse()):
+        if (gamma == self._group.T() or gamma == self._group.T().inverse()):
             return 1
-        elif (gamma == self._group.S or gamma == -self._group.S):
+        elif (gamma == self._group.S() or gamma == -self._group.S()):
             return self._ep*(t/AlgebraicField()(i))**self._weight
         else:
             raise NotImplementedError
@@ -688,7 +688,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         (x,y,z,d) = self.rat_field().gens()
 
-        finf_pol = d*(x**self._group.n - y**2)
+        finf_pol = d*(x**self._group.n() - y**2)
         rat = finf_pol**self._l1 * x**self._l2 * y**(ZZ(1-self._ep)/ZZ(2))
 
         if (self._l1 > 0):
@@ -982,7 +982,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         (x,y,z,d) = self.rat_field().gens()
 
-        n        = self._group.n
+        n        = self._group.n()
         finf_pol = d*(x**n-y**2)
         jinv_pol = x**n/(x**n-y**2)
         rat      = finf_pol**self._l1 * x**self._l2 * y**(ZZ(1-self._ep)/ZZ(2)) * self.Faber_pol(m)(jinv_pol)

@@ -81,7 +81,7 @@ class FormsRing_abstract(Parent):
 
         #if (not group.is_arithmetic() and base_ring.characteristic()>0):
         #    raise NotImplementedError
-        #if (base_ring.characteristic().divides(2*group.n*(group.n-2))):
+        #if (base_ring.characteristic().divides(2*group.n()*(group.n()-2))):
         #    raise NotImplementedError
         if (base_ring.characteristic() > 0):
             raise NotImplementedError
@@ -114,7 +114,7 @@ class FormsRing_abstract(Parent):
             QuasiModularFormsRing(n=4) over Integer Ring
         """
 
-        return "{}FormsRing(n={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n, self._base_ring)
+        return "{}FormsRing(n={}) over {}".format(self._analytic_type.analytic_space_name(), self._group.n(), self._base_ring)
 
     def _latex_(self):
         r"""
@@ -128,7 +128,7 @@ class FormsRing_abstract(Parent):
         """
 
         from sage.misc.latex import latex
-        return "\\mathcal{{ {} }}_{{n={}}}({})".format(self._analytic_type.latex_space_name(), self._group.n, latex(self._base_ring))
+        return "\\mathcal{{ {} }}_{{n={}}}({})".format(self._analytic_type.latex_space_name(), self._group.n(), latex(self._base_ring))
 
     def _element_constructor_(self, x):
         r"""
@@ -211,13 +211,13 @@ class FormsRing_abstract(Parent):
 
             sage: from graded_ring import CuspFormsRing
             sage: from space import WeakModularForms
-            sage: CuspFormsRing()._an_element_()
+            sage: CuspFormsRing().an_element()
             f_rho^3*d - f_i^2*d
-            sage: _ == CuspFormsRing().Delta()
+            sage: CuspFormsRing().an_element() == CuspFormsRing().Delta()
             True
-            sage: WeakModularForms()._an_element_()
+            sage: WeakModularForms().an_element()
             O(q^5)
-            sage: _ == WeakModularForms().zero()
+            sage: WeakModularForms().an_element() == WeakModularForms().zero()
             True
         """
 
@@ -509,7 +509,7 @@ class FormsRing_abstract(Parent):
         7
         """
 
-        return self._group.n
+        return self._group.n()
 
     @cached_method
     def base_ring(self):
@@ -625,9 +625,9 @@ class FormsRing_abstract(Parent):
         """
 
         (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
-        return   1/self._group.n * (X*Z-Y)*dX\
-               + ZZ(1)/ZZ(2) * (Y*Z-X**(self._group.n-1))*dY\
-               + (self._group.n-2) / (4*self._group.n) * (Z**2-X**(self._group.n-2))*dZ
+        return   1/self._group.n() * (X*Z-Y)*dX\
+               + ZZ(1)/ZZ(2) * (Y*Z-X**(self._group.n()-1))*dY\
+               + (self._group.n()-2) / (4*self._group.n()) * (Z**2-X**(self._group.n()-2))*dZ
 
     @cached_method
     def _serre_derivative_op(self):
@@ -643,9 +643,9 @@ class FormsRing_abstract(Parent):
         """
 
         (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
-        return - 1/self._group.n * Y*dX\
-               - ZZ(1)/ZZ(2) * X**(self._group.n-1)*dY\
-               - (self._group.n-2) / (4*self._group.n) * (Z**2+X**(self._group.n-2))*dZ
+        return - 1/self._group.n() * Y*dX\
+               - ZZ(1)/ZZ(2) * X**(self._group.n()-1)*dY\
+               - (self._group.n()-2) / (4*self._group.n()) * (Z**2+X**(self._group.n()-2))*dZ
 
     @cached_method
     def has_reduce_hom(self):
@@ -874,7 +874,7 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("weak", ring=True)(x**self._group.n/(x**self._group.n-y**2)).reduce()
+        return self.extend_type("weak", ring=True)(x**self._group.n()/(x**self._group.n()-y**2)).reduce()
 
     @cached_method
     def j_inv(self):
@@ -919,7 +919,7 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("weak", ring=True)(1/d*x**self._group.n/(x**self._group.n-y**2)).reduce()
+        return self.extend_type("weak", ring=True)(1/d*x**self._group.n()/(x**self._group.n()-y**2)).reduce()
 
     @cached_method
     def F_rho(self):
@@ -1062,7 +1062,7 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("cusp", ring=True)(d*(x**self._group.n-y**2)).reduce()
+        return self.extend_type("cusp", ring=True)(d*(x**self._group.n()-y**2)).reduce()
 
     @cached_method
     def G_inv(self):
@@ -1110,11 +1110,11 @@ class FormsRing_abstract(Parent):
             1/65536*q^-1 - 3/8192 - 955/16384*q - 49/32*q^2 - 608799/32768*q^3 - 659/4*q^4 + O(q^5)
         """
 
-        if (ZZ(2).divides(self._group.n)):
+        if (ZZ(2).divides(self._group.n())):
             (x,y,z,d) = self._pol_ring.gens()
-            return self.extend_type("weak", ring=True)(d*y*x**(self._group.n/ZZ(2))/(x**self._group.n-y**2)).reduce()
+            return self.extend_type("weak", ring=True)(d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise Exception("G_inv doesn't exists for n={}.".format(self._group.n))
+           raise Exception("G_inv doesn't exists for n={}.".format(self._group.n()))
 
     @cached_method
     def g_inv(self):
@@ -1162,11 +1162,11 @@ class FormsRing_abstract(Parent):
             q^-1 - 24 - 3820*q - 100352*q^2 - 1217598*q^3 - 10797056*q^4 + O(q^5)
         """
 
-        if (ZZ(2).divides(self._group.n)):
+        if (ZZ(2).divides(self._group.n())):
             (x,y,z,d) = self._pol_ring.gens()
-            return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n/ZZ(2))/(x**self._group.n-y**2)).reduce()
+            return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise Exception("g_inv doesn't exists for n={}.".format(self._group.n))
+           raise Exception("g_inv doesn't exists for n={}.".format(self._group.n()))
 
     @cached_method
     def E4(self):
@@ -1212,7 +1212,7 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("holo", ring=True)(x**(self._group.n-2)).reduce()
+        return self.extend_type("holo", ring=True)(x**(self._group.n()-2)).reduce()
 
     @cached_method
     def E6(self):
@@ -1258,7 +1258,7 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("holo", ring=True)(x**(self._group.n-3)*y).reduce()
+        return self.extend_type("holo", ring=True)(x**(self._group.n()-3)*y).reduce()
 
     @cached_method
     def Delta(self):
@@ -1307,7 +1307,7 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("cusp", ring=True)(d*x**(2*self._group.n-6)*(x**self._group.n-y**2)).reduce()
+        return self.extend_type("cusp", ring=True)(d*x**(2*self._group.n()-6)*(x**self._group.n()-y**2)).reduce()
 
     @cached_method
     def E2(self):

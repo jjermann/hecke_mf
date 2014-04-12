@@ -1484,7 +1484,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: F_inf = MR.F_inf().full_reduce()
             sage: E2    = MR.E2().full_reduce()
             sage: E4    = MR.E4().full_reduce()
-            sage: rho   = MR.group().rho
+            sage: rho   = MR.group().rho()
 
             sage: F_rho(rho)  # rel tol 1e-8
             7.92477417022042e-10 + 3.21684682133615e-16*I
@@ -1544,14 +1544,14 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)
             A, w, aut_factor = self.group().get_FD(tau,self.parent().aut_factor)
             if (type(q_exp) == LaurentSeries):
-                return q_exp.laurent_polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam*w))*aut_factor
+                return q_exp.laurent_polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam()*w))*aut_factor
             else:
-                return q_exp.polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam*w))*aut_factor
+                return q_exp.polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam()*w))*aut_factor
         elif (self._rat == z):
             E2 = self.parent().graded_ring().E2()
             A, w, aut_factor = self.group().get_FD(tau,E2.parent().aut_factor)
-            E2_wvalue = E2.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec).polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam*w))
-            E2_cor_term = 4*self.group().lam/(2*pi*i).n(num_prec)*self.hecke_n()/(self.hecke_n()-2) * A[1][0]*(A[1][0]*w + A[1][1])
+            E2_wvalue = E2.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec).polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam()*w))
+            E2_cor_term = 4*self.group().lam()/(2*pi*i).n(num_prec)*self.hecke_n()/(self.hecke_n()-2) * A[1][0]*(A[1][0]*w + A[1][1])
             return E2_wvalue*aut_factor + E2_cor_term
         else:
             F_rho = self.parent().graded_ring().F_rho()

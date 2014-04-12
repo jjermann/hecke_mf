@@ -53,14 +53,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             try:
                 group = HeckeTriangleGroup(ZZ(group))
             except TypeError:
-                group = HeckeTriangleGroup(group.n)
+                group = HeckeTriangleGroup(group.n())
         prec=ZZ(prec)
         #if (prec<1):
         #    raise Exception("prec must be an Integer >=1")
 
         fix_d = bool(fix_d)
         if (fix_d):
-            n = group.n
+            n = group.n()
             d = group.dvalue()
             if (group.is_arithmetic()):
                 d_num_prec = None
@@ -143,10 +143,10 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         if (self._set_d):
             return "Power series constructor for Hecke modular forms for n={}, base ring={} with (basic series) precision {} with parameter d={}".\
-                format(self._group.n, self._base_ring, self._prec, self._d)
+                format(self._group.n(), self._base_ring, self._prec, self._d)
         else:
             return "Power series constructor for Hecke modular forms for n={}, base ring={} with (basic series) precision {} with formal parameter d".\
-                format(self._group.n, self._base_ring, self._prec)
+                format(self._group.n(), self._base_ring, self._prec)
 
     def group(self):
         r"""
@@ -160,7 +160,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the parameter ``n`` of the (Hecke triangle) group of ``self``.
         """
 
-        return self._group.n
+        return self._group.n()
 
     def base_ring(self):
         r"""
@@ -255,8 +255,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
                        rising_factorial(a,k) * rising_factorial(b,k) / rising_factorial(c,k) / (ZZ(k).factorial())\
                        for k in range(ZZ(0),ZZ(self._prec+1))\
                    ], ZZ(self._prec+1))
-        a        = self._group.alpha
-        b        = self._group.beta
+        a        = self._group.alpha()
+        b        = self._group.beta()
         Phi      = F1(a,b) / F(a,b,ZZ(1))
         q        = self._ZZseries_ring.gen()
         J_inv_ZZ = ZZ(1) / ((q*Phi.exp()).reversion())
