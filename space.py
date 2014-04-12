@@ -95,6 +95,8 @@ class QMModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             quasi meromorphic modular
             sage: MF.category()
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: MF.ambient_space() == MF
+            True
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
@@ -137,6 +139,8 @@ class QWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             quasi weakly holomorphic modular
             sage: MF.category()
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: MF.is_ambient()
+            True
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
@@ -179,6 +183,8 @@ class QModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             quasi modular
             sage: MF.category()
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: MF.is_ambient()
+            True
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
@@ -311,6 +317,8 @@ class QCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             quasi cuspidal
             sage: MF.category()
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: MF.is_ambient()
+            True
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
@@ -449,6 +457,8 @@ class MModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             meromorphic modular
             sage: MF.category()
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: MF.is_ambient()
+            True
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
@@ -531,6 +541,12 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             modular
             sage: MF.category()
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: MF.module()
+            Vector space of dimension 1 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: MF.ambient_module() == MF.module()
+            True
+            sage: MF.is_ambient()
+            True
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
@@ -651,6 +667,12 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             cuspidal
             sage: MF.category()
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: MF.module()
+            Vector space of dimension 1 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: MF.ambient_module() == MF.module()
+            True
+            sage: MF.is_ambient()
+            True
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
@@ -776,6 +798,12 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
             zero
             sage: MF.category()
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Complex Field with 53 bits of precision
+            sage: MF.module()
+            Vector space of dimension 0 over Fraction Field of Univariate Polynomial Ring in d over Complex Field with 53 bits of precision
+            sage: MF.ambient_module() == MF.module()
+            True
+            sage: MF.is_ambient()
+            True
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)

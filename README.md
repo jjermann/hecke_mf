@@ -72,6 +72,8 @@ An implementation for sage:
       * graded_ring_element.py
       * element.py
       * graded_ring.py
+      * space.py
+      * subspace.py
 
 
 Planned:
