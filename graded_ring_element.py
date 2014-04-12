@@ -108,8 +108,37 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         super(FormsRingElement, self).__init__(parent)
 
-    def _repr_(self):
+    # Unfortunately the polynomial ring does not give unique
+    # representations of elements (with respect to ==)
+    def __eq__(self, other):
+        r"""
+        Return whether ``self`` is equal to ``other``.
+        They are considered equal if the corresponding rational
+        functions are equal and the groups match up.
+
+        EXAMPLES::
+
+            sage: from graded_ring import MModularFormsRing
+            sage: (x,y,z,d) = MModularFormsRing().pol_ring().gens()
+            sage: MModularFormsRing(group=3)(x) == MModularFormsRing(group=4)(x)
+            False
+            sage: MModularFormsRing()(-1/x) is MModularFormsRing()(1/(-x))
+            False
+            sage: MModularFormsRing()(-1/x) == MModularFormsRing()(1/(-x))
+            True
+            sage: MModularFormsRing(base_ring=CC)(-1/x) == MModularFormsRing()(1/(-x))
+            True
         """
+
+        if (super(FormsRingElement, self).__eq__(other)):
+            return True
+        elif (isinstance(other, FormsRingElement)):
+            return (self.group() == other.group() and self.rat() == other.rat())
+        else:
+            return False
+
+    def _repr_(self):
+        r"""
         Return the string representation of ``self``.
 
         EXAMPLES::
@@ -123,7 +152,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         return self._rat_repr()
 
     def _rat_repr(self):
-        """
+        r"""
         Return a string representation of ``self`` as a rational function in the generators.
 
         EXAMPLES::
@@ -140,7 +169,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         return "{}".format(pol_str)
 
     def _qexp_repr(self):
-        """
+        r"""
         Return a string representation of ``self`` as a Fourier series.
 
         EXAMPLES::
@@ -722,6 +751,13 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             MeromorphicModularFormsRing(n=8) over Integer Ring
             sage: (FractionField(PolynomialRing(CC,'d')).gen()/E4).parent()
             MeromorphicModularForms(n=8, k=-4, ep=1) over Complex Field with 53 bits of precision
+
+            sage: (E4^(-2)).parent()
+            MeromorphicModularForms(n=8, k=-8, ep=1) over Integer Ring
+            sage: ((E4.as_ring_element())^(-2)).parent() == (E4^(-2)).parent()
+            True
+            sage: (MR(x)^(-3)).parent()
+            QuasiMeromorphicModularFormsRing(n=8) over Integer Ring
 
             sage: subspace = MR.reduce_type(["holo"], degree=(12,1)).subspace([Delta, E6^2])
             sage: gen0 = subspace.gen(0)

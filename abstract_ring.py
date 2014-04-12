@@ -179,6 +179,14 @@ class FormsRing_abstract(Parent):
             False
             sage: MR1.has_coerce_map_from(ZZ)
             True
+
+            sage: from space import ModularForms, CuspForms
+            sage: MF2 = ModularForms(k=6, ep=-1)
+            sage: MF3 = CuspForms(k=12, ep=1)
+            sage: MR1.has_coerce_map_from(MF2)
+            True
+            sage: MR2.has_coerce_map_from(MF3)
+            True
         """
 
         from space import FormsSpace_abstract
