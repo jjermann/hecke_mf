@@ -73,6 +73,14 @@ def get_base_ring(ring, var_name="d"):
 
 
 def ConstantFormsSpaceFunctor(group):
+    r"""
+    Construction functor for the space of constant forms.
+
+    When determening a common parent between a ring
+    and a forms ring or space this functor is first
+    applied to the ring.
+    """
+
     return FormsSpaceFunctor("holo", group, QQ(0), ZZ(1))
 
 

@@ -1212,13 +1212,14 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: from space import ModularForms
             sage: MF = ModularForms(group=4, k=24, ep=-1)
-            sage: MF.gen(0).coordinate_vector().parent() # defined in space.py
+            sage: MF.coordinate_vector(MF.gen(0)).parent() # defined in space.py
             Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MF.gen(0).coordinate_vector()          # defined in space.py
+            sage: MF.coordinate_vector(MF.gen(0))          # defined in space.py
             (1, 0, 0)
-            sage: MF.subspace([MF.gen(0), MF.gen(2)]).gen(0).coordinate_vector().parent() # defined in subspace.py
+            sage: subspace = MF.subspace([MF.gen(0), MF.gen(2)])
+            sage: subspace.coordinate_vector(subspace.gen(0)).parent()  # defined in subspace.py
             Vector space of dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MF.subspace([MF.gen(0), MF.gen(2)]).gen(0).coordinate_vector()          # defined in subspace.py
+            sage: subspace.coordinate_vector(subspace.gen(0))           # defined in subspace.py
             (1, 0)
         """
 
@@ -1238,16 +1239,17 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: from space import ModularForms
             sage: MF = ModularForms(group=4, k=24, ep=-1)
-            sage: MF.gen(0).ambient_coordinate_vector().parent()
+            sage: MF.ambient_coordinate_vector(MF.gen(0)).parent()
             Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MF.gen(0).ambient_coordinate_vector()
+            sage: MF.ambient_coordinate_vector(MF.gen(0))
             (1, 0, 0)
-            sage: MF.subspace([MF.gen(0), MF.gen(2)]).gen(0).ambient_coordinate_vector().parent()
+            sage: subspace = MF.subspace([MF.gen(0), MF.gen(2)])
+            sage: subspace.ambient_coordinate_vector(subspace.gen(0)).parent()
             Vector space of degree 3 and dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             Basis matrix:
             [1 0 0]
             [0 0 1]
-            sage: MF.subspace([MF.gen(0), MF.gen(2)]).gen(0).ambient_coordinate_vector()
+            sage: subspace.ambient_coordinate_vector(subspace.gen(0))
             (1, 0, 0)
         """
 
