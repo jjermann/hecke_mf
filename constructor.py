@@ -64,6 +64,41 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
 
     This function is (heavily) used to determine the type of elements
     and to check if the element really is contained in its parent.
+
+
+    EXAMPLES::
+
+        sage: (x,y,z,d) = var("x,y,z,d")
+
+        sage: rational_type(0, n=4)
+        (True, True, 0, 1, zero)
+
+        sage: rational_type(1, n=12)
+        (True, True, 0, 1, modular)
+
+        sage: rational_type(x^3 - y^2)
+        (True, True, 12, 1, cuspidal)
+
+        sage: rational_type(x * z, n=7)
+        (True, True, 14/5, -1, quasi modular)
+
+        sage: rational_type(1/(x^3 - y^2) + z/d)
+        (True, False, None, None, quasi weakly holomorphic modular)
+
+        sage: rational_type(x^3/(x^3 - y^2))
+        (True, True, 0, 1, weakly holomorphic modular)
+
+        sage: rational_type(1/(x + z))
+        (False, False, None, None, None)
+
+        sage: rational_type(1/x + 1/z)
+        (True, False, None, None, quasi meromorphic modular)
+
+        sage: rational_type(d/x, n=10)
+        (True, True, -1/2, 1, meromorphic modular)
+
+        sage: rational_type(1.1 * z * (x^8-y^2), n=8, base_ring=CC)
+        (True, True, 22/3, -1, quasi cuspidal)
     """
 
     from analytic_type import AnalyticType
@@ -171,6 +206,27 @@ def FormsSubSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None, basis=
     OUTPUT:
 
     The FormsSubSpace with the given properties.
+
+
+    EXAMPLES::
+
+        sage: from graded_ring import ModularFormsRing
+        sage: MR = ModularFormsRing(group=5, red_hom=True)
+        
+        sage: FormsSubSpace([])
+        Subspace with basis [] of ZeroForms(n=3, k=0, ep=1) over Integer Ring
+        sage: FormsSubSpace(["quasi"]) # not implemented
+
+        sage: FormsSubSpace("cusp", group=5, base_ring=CC, k=12, ep=1, basis=[MR.Delta()])
+        Subspace with basis [f_rho^9*d - f_rho^4*f_i^2*d] of CuspForms(n=5, k=12, ep=1)
+        over Complex Field with 53 bits of precision
+
+        sage: from space import ModularForms
+        sage: MF = ModularForms(group=6, k=20, ep=1)
+        sage: FormsSubSpace("holo", group=6, base_ring=ZZ, k=20, ep=1, basis=[MF.Delta()*MF.E4()^2, MF.gen(0)])
+        Subspace with basis [f_rho^20*d - f_rho^14*f_i^2*d,
+        (-1342*f_rho^20 - 9015*f_rho^14*f_i^2 - 2730*f_rho^8*f_i^4 - 35*f_rho^2*f_i^6)/(-13122)]
+        of ModularForms(n=6, k=20, ep=1) over Integer Ring
     """
 
     from subspace import SubSpaceForms
@@ -206,6 +262,36 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
     OUTPUT:
 
     The FormsSpace with the given properties.
+
+    EXAMPLES::
+
+        sage: FormsSpace([])
+        ZeroForms(n=3, k=0, ep=1) over Integer Ring
+        sage: FormsSpace(["quasi"]) # not implemented
+
+        sage: FormsSpace("cusp", group=5, base_ring=CC, k=12, ep=1)
+        CuspForms(n=5, k=12, ep=1) over Complex Field with 53 bits of precision
+
+        sage: FormsSpace("holo")
+        ModularForms(n=3, k=0, ep=1) over Integer Ring
+
+        sage: FormsSpace("weak", group=6, base_ring=ZZ, k=0, ep=-1)
+        WeakModularForms(n=6, k=0, ep=-1) over Integer Ring
+
+        sage: FormsSpace("mero", group=7, base_ring=ZZ, k=2, ep=-1)
+        MeromorphicModularForms(n=7, k=2, ep=-1) over Integer Ring
+
+        sage: FormsSpace(["quasi", "cusp"], group=5, base_ring=CC, k=12, ep=1)
+        QuasiCuspForms(n=5, k=12, ep=1) over Complex Field with 53 bits of precision
+
+        sage: FormsSpace(["quasi", "holo"])
+        QuasiModularForms(n=3, k=0, ep=1) over Integer Ring
+
+        sage: FormsSpace(["quasi", "weak"], group=6, base_ring=ZZ, k=0, ep=-1)
+        QuasiWeakModularForms(n=6, k=0, ep=-1) over Integer Ring
+
+        sage: FormsSpace(["quasi", "mero"], group=7, base_ring=ZZ, k=2, ep=-1)
+        QuasiMeromorphicModularForms(n=7, k=2, ep=-1) over Integer Ring
     """
 
     from space import canonical_parameters
@@ -281,7 +367,38 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
     OUTPUT:
 
     The FormsRing with the given properties.
+
+    EXAMPLES::
+
+        sage: FormsRing("cusp", group=5, base_ring=CC)
+        CuspFormsRing(n=5) over Complex Field with 53 bits of precision
+        sage: FormsRing("cusp", group=5, base_ring=CC) == FormsRing([], group=5, base_ring=CC)
+        True
+
+        sage: FormsRing("holo")
+        ModularFormsRing(n=3) over Integer Ring
+
+        sage: FormsRing("weak", group=6, base_ring=ZZ, red_hom=True)
+        WeakModularFormsRing(n=6) over Integer Ring
+
+        sage: FormsRing("mero", group=7, base_ring=ZZ)
+        MeromorphicModularFormsRing(n=7) over Integer Ring
+
+        sage: FormsRing(["quasi", "cusp"], group=5, base_ring=CC)
+        QuasiCuspFormsRing(n=5) over Complex Field with 53 bits of precision
+        sage: FormsRing(["quasi", "cusp"], group=5, base_ring=CC) == FormsRing(["quasi"], group=5, base_ring=CC)
+        True
+
+        sage: FormsRing(["quasi", "holo"])
+        QuasiModularFormsRing(n=3) over Integer Ring
+
+        sage: FormsRing(["quasi", "weak"], group=6, base_ring=ZZ, red_hom=True)
+        QuasiWeakModularFormsRing(n=6) over Integer Ring
+
+        sage: FormsRing(["quasi", "mero"], group=7, base_ring=ZZ, red_hom=True)
+        QuasiMeromorphicModularFormsRing(n=7) over Integer Ring
     """
+
     from graded_ring import canonical_parameters
     (group, base_ring, red_hom) = canonical_parameters(group, base_ring, red_hom)
 
