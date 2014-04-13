@@ -66,19 +66,21 @@ An implementation for sage:
 
   * Complete documentation of all functions and methods.
 
-  * Complete doctests for:
-      * abstract_ring.py
-      * abstract_space.py
-      * graded_ring_element.py
-      * element.py
-      * graded_ring.py
-      * space.py
-      * subspace.py
-      * hecke_triangle_groups.py
-      * constructor.py
+  * Complete doctests except for:
+      * functors.py
+      * analytic_type.py
 
 
-Planned:
---------
+Ideas:
+------
 
-  * Remaining doctests
+  * Forms spaces/rings with reduced coefficient rings:
+      * That would require a lot of work (sigh)...
+      * Initialize everything with an optional "fix_d" parameter
+        (maybe even with a "set_d" parameter).
+      * In case that parameter is set the corresponding rings are changed:
+        base ring, polynomial ring, fraction field, coefficient ring
+      * Make the MFSeriesConstructor part of the abstract ring?
+        In particular: all functions which have a fix_d/set_d parameter
+        would now query it from the space instead.
+      * For arithmetic groups fix_d could be set by default.
