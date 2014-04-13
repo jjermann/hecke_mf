@@ -25,7 +25,9 @@ from sage.structure.parent                       import Parent
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.rings                       import Rings
 
-from constructor                                 import FormsSubSpace, FormsSpace, FormsRing
+from constructor                                 import FormsSpace, FormsRing
+from abstract_space                              import FormsSpace_abstract
+from subspace                                    import SubSpaceForms
 
 
 def get_base_ring(ring, var_name="d"):
@@ -87,37 +89,27 @@ def ConstantFormsSpaceFunctor(group):
 class FormsSubSpaceFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms sub spaces.
-
-    Note: When the base ring is not a ``BaseFacade``
-    the functor is first merged with the ConstantFormsSpaceFunctor.
-    This case occurs in the pushout constructions
-    (when trying to find a common parent
-    between a forms subspace and a ring which
-    is not a ``BaseFacade``).
     """
-
-    from analytic_type import AnalyticType
-    AT = AnalyticType()
 
     rank = 10
 
-    def __init__(self, analytic_type, group, k, ep, basis):
+    def __init__(self, ambient_space_functor, basis):
         r"""
         Construction functor for the forms sub space
         for the given ``basis`` inside the ambient space
-        which is determined by the given ``analytic_type``,
-        ``group``, weight ``k`` and multiplier ``ep``.
+        which is constructed by the ``ambient_space_functor``.
+
+        The functor can only be applied to rings for which the basis
+        can be converted into the corresponding forms space
+        given by the ``ambient_space_functor`` applied to the ring.        
 
         See :meth:`__call__` for a description of the functor.
 
         INPUT:
 
-        - ``analytic_type``   - An element of ``AnalyticType()``.
-        - ``group``           - A Hecke Triangle group.
-        - ``k``               - A rational number, the weight of the space.
-        - ``ep``              - ``1`` or ``-1``, the multiplier of the space.
-        - ``basis``           - A list of elements of a corresponding
-                                ambient space over some base ring.
+        - ``ambient_space_functor``  - A FormsSpaceFunctor
+        - ``basis``                  - A list of elements of some ambient space
+                                       over some base ring.
 
         OUTPUT:
  
@@ -125,117 +117,76 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
         """
 
         Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
-        from space import canonical_parameters
-        (self._group, R, self._k, self._ep) = canonical_parameters(group, ZZ, k, ep)
-
-        self._analytic_type = self.AT(analytic_type)
-        self._basis = basis
+        if not isinstance(ambient_space_functor, FormsSpaceFunctor):
+            raise Exception("{} is not a FormsSpaceFunctor!".format(ambient_space_functor))
         #self._basis_ring = 
         #on call check if there is a coercion from self._basis_ring to R
 
+        self._ambient_space_functor = ambient_space_functor
+        self._basis = basis
+
     def __call__(self, R):
         r"""
-        If ``R`` is a ``BaseFacade(S)`` then return the corresponding
-        forms subspace with base ring ``get_base_ring(S)``.
-        For this it is required that the base ring of the basis coerces
-        into the new base ring.
-        
-        If not then we first merge the functor with the ConstantFormsSpaceFunctor.
+        Return the corresponding subspace of the ambient space
+        constructed by ``self._ambient_space`` with the basis ``self._basis``.
+        If the ambient space is not a forms space the ambient space is returned.
         """
 
-        if (isinstance(R, BaseFacade)):
-            R = get_base_ring(R._ring)
-            return FormsSubSpace(self._analytic_type, self._group, R, self._k, self._ep, self._basis)
+        ambient_space = self._ambient_space_functor(R)
+        if isinstance(ambient_space, FormsSpace_abstract):
+            return SubSpaceForms(ambient_space, self._basis)
         else:
-            R = BaseFacade(get_base_ring(R))
-            merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
-            return merged_functor(R)
+            return ambient_space
 
     def __repr__(self):
         r"""  
         Return the string representation of ``self``.
         """
 
-        return "FormsSubSpaceFunctor for the basis {}".format(self._basis)
+        return "FormsSubSpaceFunctor (with basis) for the {}".format(self._ambient_space_functor)
 
     def merge(self, other):
         r"""
         Return the merged functor of ``self`` and ``other``.
 
-        It is only possible to merge instances of
-        ``FormsSubSpaceFunctor``, ``FormsSpaceFunctor`` and
-        ``FormsRingFunctor``. Also only if they share the same group.
+        If ``other`` is a ``FormsSubSpaceFunctor`` then
+        first the common ambient space functor is constructed by
+        merging the two corresponding functors.
 
-        The analytic type of the merged functor is the extension
-        of the two analytic types of the functors.
-        The ``red_hom`` parameter of the merged functor
-        is the logical ``and`` of the two corresponding ``red_hom``
-        parameters (where a forms space is assumed to have it
-        set to ``True``).
-    
-        Two ``FormsSubSpaceFunctor`` are merged to one with
-        a united basis and analytic type in case the weight and
-        multiplier agree. Otherwise the corresponding (extended)
-        ``FormsSpaceFunctor`` is returned.
-        
-        If only one ``FormsSubSpaceFunctor`` is involved then
-        it is treated like a ``FormsSpaceFunctor`` for the ambient space.
- 
-        Two ``FormsSpaceFunctor`` with different (k,ep)
-        are merged to a corresponding ``FormsRingFunctor``.
-        Otherwise the corresponding (extended) ``FormsSpaceFunctor``
+        If that ambient space functor is a FormsSpaceFunctor
+        and the basis agree the corresponding ``FormsSubSpaceFunctor``
         is returned.
 
-        A ``FormsSpaceFunctor`` and ``FormsRingFunctor``
-        are merged to a corresponding (extended) ``FormsRingFunctor``.
-
-        Two ``FormsRingFunctors`` are merged to the corresponding
-        (extended) ``FormsRingFunctor``.
+        If ``other`` is not a ``FormsSubSpaceFunctor`` then ``self``
+        is merged as if it was its ambient space functor.
         """
 
         if (self == other):
             return self
         elif isinstance(other, FormsSubSpaceFunctor):
-            if not (self._group == other._group):
-                return None
-            analytic_type = self._analytic_type + other._analytic_type
-            if (self._k == other._k) and (self._ep == other._ep):
+            merged_ambient_space_functor = self._ambient_space_functor.merge(other._ambient_space_functor)
+            if isinstance(merged_ambient_space_functor, FormsSpace_abstract):
                 if (self._basis == other._basis):
                     basis = self._basis
-                    return FormsSubSpaceFunctor(analytic_type, self._group, self._k, self._ep, basis)
+                    return FormsSubSpaceFunctor(merged_ambient_space_functor, basis)
                 else:
                     #TODO: Or combine the basis to a new basis (which one?)
                     #basis = self._basis + other._basis
-                    #return FormsSubSpaceFunctor(analytic_type, self._group, self._k, self._ep, basis)
-                    return FormsSpaceFunctor(analytic_type, self._group, self._k, self._ep)
+                    return merged_ambient_space_functor
+            # This includes the case when None is returned
             else:
-                return FormsRingFunctor(analytic_type, self._group, True)
-        elif isinstance(other, FormsSpaceFunctor):
-            if not (self._group == other._group):
-                return None
-            analytic_type = self._analytic_type + other._analytic_type
-            if (self._k == other._k) and (self._ep == other._ep):
-                return FormsSpaceFunctor(analytic_type, self._group, self._k, self._ep)
-            else:
-                return FormsRingFunctor(analytic_type, self._group, True)
-        elif isinstance(other, FormsRingFunctor):
-            if not (self._group == other._group):
-                return None
-            red_hom = other._red_hom
-            analytic_type = self._analytic_type + other._analytic_type
-            return FormsRingFunctor(analytic_type, self._group, red_hom)
+                return merged_ambient_space_functor
+        else:
+            return self._ambient_space_functor.merge(other)
 
     def __eq__(self, other):
         r"""
         Compare ``self`` and ``other``.
         """
 
-        if    ( type(self)          == type(other)\
-            and self._group         == other._group\
-            and self._analytic_type == other._analytic_type\
-            and self._k             == other._k\
-            and self._ep            == other._ep\
-            and self._basis         == other._basis ):
+        if    ( type(self)                  == type(other)\
+            and self._ambient_space_functor == other._ambient_space_functor\
+            and self._basis                 == other._basis ):
                 return True
         else:
             return False
@@ -313,9 +264,9 @@ class FormsSpaceFunctor(ConstructionFunctor):
         r"""
         Return the merged functor of ``self`` and ``other``.
 
-        It is only possible to merge instances of
-        ``FormsSubSpaceFunctor``, ``FormsSpaceFunctor`` and
-        ``FormsRingFunctor``. Also only if they share the same group.
+        It is only possible to merge instances of ``FormsSpaceFunctor``
+        and ``FormsRingFunctor``. Also only if they share the same group.
+        An ``FormsSubSpaceFunctors`` is replaced by its ambient space functor.
 
         The analytic type of the merged functor is the extension
         of the two analytic types of the functors.
@@ -324,18 +275,9 @@ class FormsSpaceFunctor(ConstructionFunctor):
         parameters (where a forms space is assumed to have it
         set to ``True``).
     
-        Two ``FormsSubSpaceFunctor`` are merged to one with
-        a united basis and analytic type in case the weight and
-        multiplier agree. Otherwise the corresponding (extended)
-        ``FormsSpaceFunctor`` is returned.
-        
-        If only one ``FormsSubSpaceFunctor`` is involved then
-        it is treated like a ``FormsSpaceFunctor`` for the ambient space.
-
-        Two ``FormsSpaceFunctor`` with different (k,ep)
-        are merged to a corresponding ``FormsRingFunctor``.
-        Otherwise the corresponding (extended) ``FormsSpaceFunctor``
-        is returned.
+        Two ``FormsSpaceFunctor`` with different (k,ep) are merged to a
+        corresponding ``FormsRingFunctor``. Otherwise the corresponding
+        (extended) ``FormsSpaceFunctor`` is returned.
 
         A ``FormsSpaceFunctor`` and ``FormsRingFunctor``
         are merged to a corresponding (extended) ``FormsRingFunctor``.
@@ -346,7 +288,11 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         if (self == other):
             return self
-        elif isinstance(other, FormsSubSpaceFunctor) or isinstance(other, FormsSpaceFunctor):
+        
+        if isinstance(other, FormsSubSpaceFunctor):
+            other = other._ambient_space_functor
+
+        if isinstance(other, FormsSpaceFunctor):
             if not (self._group == other._group):
                 return None
             analytic_type = self._analytic_type + other._analytic_type
@@ -451,9 +397,9 @@ class FormsRingFunctor(ConstructionFunctor):
         r"""
         Return the merged functor of ``self`` and ``other``.
 
-        It is only possible to merge instances of
-        ``FormsSubSpaceFunctor``, ``FormsSpaceFunctor`` and
-        ``FormsRingFunctor``. Also only if they share the same group.
+        It is only possible to merge instances of ``FormsSpaceFunctor``
+        and ``FormsRingFunctor``. Also only if they share the same group.
+        An ``FormsSubSpaceFunctors`` is replaced by its ambient space functor.
 
         The analytic type of the merged functor is the extension
         of the two analytic types of the functors.
@@ -462,18 +408,9 @@ class FormsRingFunctor(ConstructionFunctor):
         parameters (where a forms space is assumed to have it
         set to ``True``).
     
-        Two ``FormsSubSpaceFunctor`` are merged to one with
-        a united basis and analytic type in case the weight and
-        multiplier agree. Otherwise the corresponding (extended)
-        ``FormsSpaceFunctor`` is returned.
-        
-        If only one ``FormsSubSpaceFunctor`` is involved then
-        it is treated like a ``FormsSpaceFunctor`` for the ambient space.
-
-        Two ``FormsSpaceFunctor`` with different (k,ep)
-        are merged to a corresponding ``FormsRingFunctor``.
-        Otherwise the corresponding (extended) ``FormsSpaceFunctor``
-        is returned.
+        Two ``FormsSpaceFunctor`` with different (k,ep) are merged to a
+        corresponding ``FormsRingFunctor``. Otherwise the corresponding
+        (extended) ``FormsSpaceFunctor`` is returned.
 
         A ``FormsSpaceFunctor`` and ``FormsRingFunctor``
         are merged to a corresponding (extended) ``FormsRingFunctor``.
@@ -484,7 +421,11 @@ class FormsRingFunctor(ConstructionFunctor):
 
         if (self == other):
             return self
-        elif isinstance(other, FormsSubSpaceFunctor) or isinstance(other, FormsSpaceFunctor):
+
+        if isinstance(other, FormsSubSpaceFunctor):
+            other = other._ambient_space_functor
+
+        if isinstance(other, FormsSpaceFunctor):
             if not (self._group == other._group):
                 return None
             red_hom = self._red_hom
@@ -532,7 +473,7 @@ class BaseFacade(Parent, UniqueRepresentation):
     ring element. Hence we use the ``BaseFacade`` to
     distinguish the two cases.
 
-    Since the ``BaseFacade`` of a ring embedds into that ring
+    Since the ``BaseFacade`` of a ring embedds into that ring,
     a common base (resp. a coercion) between the two (or even a
     more general ring) can be found, namely the ring
     (not the ``BaseFacade`` of it).

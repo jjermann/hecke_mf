@@ -60,7 +60,7 @@ class FormsElement(FormsRingElement):
             sage: ss_el == el
             True
             sage: ss_el.parent()
-            Subspace with basis [f_rho^5*d - f_i^2*d] of ModularForms(n=5, k=20/3, ep=1) over Integer Ring
+            Subspace of dimension 1 of ModularForms(n=5, k=20/3, ep=1) over Integer Ring
         """
 
         super(FormsElement, self).__init__(parent, rat)

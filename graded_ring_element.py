@@ -572,7 +572,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: gen3 = subspace2.gen(1)
 
             sage: (gen0 + gen1).parent()
-            Subspace with basis [f_rho^15*d - f_rho^8*f_i^2*d, f_rho^8*f_i^2] of ModularForms(n=7, k=12, ep=1) over Integer Ring
+            Subspace of dimension 2 of ModularForms(n=7, k=12, ep=1) over Integer Ring
             sage: (gen0 + Delta*J_inv).parent()
             WeakModularForms(n=7, k=12, ep=1) over Integer Ring
             sage: gen0 + E2

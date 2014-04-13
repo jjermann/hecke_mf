@@ -94,9 +94,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             4
             sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
             sage: subspace
-            Subspace with basis [f_rho^20*d - f_rho^14*f_i^2*d,
-            (-1342*f_rho^20 - 9015*f_rho^14*f_i^2 - 2730*f_rho^8*f_i^4 - 35*f_rho^2*f_i^6)/(-13122)]
-            of ModularForms(n=6, k=20, ep=1) over Integer Ring
+            Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Integer Ring
             sage: subspace.analytic_type()
             modular
             sage: subspace.category()
@@ -146,13 +144,12 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: MF = ModularForms(group=6, k=20, ep=1)
             sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
             sage: subspace
-            Subspace with basis [f_rho^20*d - f_rho^14*f_i^2*d,
-            (-1342*f_rho^20 - 9015*f_rho^14*f_i^2 - 2730*f_rho^8*f_i^4 - 35*f_rho^2*f_i^6)/(-13122)]
-            of ModularForms(n=6, k=20, ep=1) over Integer Ring
+            Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Integer Ring
         """
 
-        # Maybe the basis should still be printed as a Fourier expansion (often shorter)...
-        return "Subspace with basis {} of {}".format([v.as_ring_element() for v in self.basis()], self._ambient_space)
+        # If we list the basis the representation usually gets too long...
+        # return "Subspace with basis {} of {}".format([v.as_ring_element() for v in self.basis()], self._ambient_space)
+        return "Subspace of dimension {} of {}".format(len(self._basis), self._ambient_space)
 
     def change_ring(self, new_base_ring):   
         r"""
@@ -164,9 +161,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: MF = ModularForms(group=6, k=20, ep=1)
             sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
             sage: subspace.change_ring(CC)
-            Subspace with basis [f_rho^20*d - f_rho^14*f_i^2*d,
-            ((-1342.00000000000)*f_rho^20 + (-9015.00000000000)*f_rho^14*f_i^2 + (-2730.00000000000)*f_rho^8*f_i^4 + (-35.0000000000000)*f_rho^2*f_i^6)/(-13122.0000000000)]
-            of ModularForms(n=6, k=20, ep=1) over Complex Field with 53 bits of precision
+            Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Complex Field with 53 bits of precision
         """
                             
         return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis)
@@ -222,7 +217,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: subspace.dimension() == len(subspace.gens())
             True
         """
-        return len(self.gens())
+        return len(self.basis())
 
     @cached_method
     def degree(self):

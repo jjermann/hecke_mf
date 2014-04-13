@@ -166,7 +166,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: subspace = MF.subspace([MF(Delta)])
             sage: subspace
-            Subspace with basis [f_rho^3*d - f_i^2*d] of ModularForms(n=3, k=12, ep=1) over Integer Ring
+            Subspace of dimension 1 of ModularForms(n=3, k=12, ep=1) over Integer Ring
             sage: subspace(MF(Delta)) == subspace(d*(x^3-y^2)) == subspace(qexp) == subspace([0,1]) == subspace(vec) == subspace.gen()
             True
             sage: subspace(MF(Delta)).parent() == subspace(d*(x^3-y^2)).parent() == subspace(qexp).parent() == subspace([0,1]).parent() == subspace(vec).parent()
@@ -317,7 +317,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
             sage: subspace = MF.subspace([MF.gen(0)])
             sage: subspace
-            Subspace with basis [(-7*f_rho^3 - 5*f_i^2)/(-12)] of ModularForms(n=3, k=12, ep=1) over Integer Ring
+            Subspace of dimension 1 of ModularForms(n=3, k=12, ep=1) over Integer Ring
             sage: subspace.ambient_space() == MF
             True
         """
@@ -374,9 +374,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             3
             sage: subspace = MF.subspace([MF.gen(0), MF.gen(1)])
             sage: subspace
-            Subspace with basis [(721*f_rho^6 + 2590*f_rho^3*f_i^2 + 145*f_i^4)/3456,
-            (-43*f_rho^6*d + 14*f_rho^3*f_i^2*d + 29*f_i^4*d)/(-72)]
-            of ModularForms(n=3, k=24, ep=1) over Integer Ring
+            Subspace of dimension 2 of ModularForms(n=3, k=24, ep=1) over Integer Ring
         """
 
         from subspace import SubSpaceForms
@@ -409,15 +407,16 @@ class FormsSpace_abstract(FormsRing_abstract):
         sage: from space import ModularForms
         sage: MF=ModularForms(k=12)
         sage: MF.subspace([MF.gen(1)]).construction()
-        (FormsSubSpaceFunctor for the basis [q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5)],
-         BaseFacade(Integer Ring))
+        (FormsSubSpaceFunctor (with basis) for the FormsSpaceFunctor, BaseFacade(Integer Ring))
         """
 
         from functors import FormsSubSpaceFunctor, FormsSpaceFunctor, BaseFacade
+        ambient_space_functor = FormsSpaceFunctor(self._analytic_type, self._group, self._weight, self._ep)
+
         if (self.is_ambient()):
-            return FormsSpaceFunctor(self._analytic_type, self._group, self._weight, self._ep), BaseFacade(self._base_ring)
+            return ambient_space_functor, BaseFacade(self._base_ring)
         else:
-            return FormsSubSpaceFunctor(self._analytic_type, self._group, self._weight, self._ep, self._basis), BaseFacade(self._base_ring)
+            return FormsSubSpaceFunctor(ambient_space_functor, self._basis), BaseFacade(self._base_ring)
 
     @cached_method
     def weight(self):
