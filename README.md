@@ -66,15 +66,14 @@ An implementation for sage:
 
   * Complete documentation of all functions and methods.
 
-  * Complete doctests of all functions and methods, except for:
-      * analytic_type.py
+  * Complete doctests of all functions and methods.
 
 
 Redesign/refactoring idea:
 --------------------------
 
   * Forms spaces/rings with reduced coefficient rings:
-      * That would require a lot of work (sigh)...
+      * That would require quite a lot of work :(
       * Initialize everything with an optional "fix_d" parameter
         (maybe even with a "set_d" parameter).
       * In case that parameter is set the corresponding rings are changed:

@@ -29,6 +29,37 @@ class AnalyticTypeElement(LatticePosetElement):
     The class derives from LatticePosetElement.
     An analytic type element describes what basic analytic
     properties are contained/included in ``self``.
+
+    EXAMPLES::
+
+        sage: AT = AnalyticType()
+        sage: el = AT(["quasi", "cusp"])
+        sage: el
+        quasi cuspidal
+        sage: isinstance(el, AnalyticTypeElement)
+        True
+        sage: isinstance(el, LatticePosetElement)
+        True
+        sage: el.parent() == AT
+        True
+        sage: el.element
+        {cusp, quasi}
+        sage: from sage.sets.set import Set_object_enumerated
+        sage: isinstance(el.element, Set_object_enumerated)
+        True
+        sage: el.element[0]
+        cusp
+        sage: el.element[0].parent() == AT.base_poset()
+        True
+
+        sage: el2 = AT("holo")
+        sage: sum = el + el2
+        sage: sum
+        quasi modular
+        sage: sum.element
+        {holo, cusp, quasi}
+        sage: el * el2
+        cuspidal
     """
 
     # We use the same constructor as LatticePosetElement
@@ -38,6 +69,11 @@ class AnalyticTypeElement(LatticePosetElement):
     def _repr_(self):
         r"""
         Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: AnalyticType()(["quasi", "cusp"])
+            quasi cuspidal
         """
 
         return self.analytic_name()
@@ -45,6 +81,11 @@ class AnalyticTypeElement(LatticePosetElement):
     def _latex_(self):
         r"""
         Return the LaTeX representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(AnalyticType()(["quasi", "cusp"]))
+            \text{\texttt{quasi{ }cuspidal}}
         """
 
         from sage.misc.latex import latex
@@ -56,6 +97,17 @@ class AnalyticTypeElement(LatticePosetElement):
         with the analytic type of ``self``.
 
         This is used for the string representation of such spaces.
+
+        EXAMPLES::
+            sage: AT = AnalyticType()
+            sage: AT(["quasi", "weak"]).analytic_space_name()
+            'QuasiWeakModular'
+            sage: AT(["quasi", "cusp"]).analytic_space_name()
+            'QuasiCusp'
+            sage: AT(["quasi"]).analytic_space_name()
+            'Zero'
+            sage: AT([]).analytic_space_name()
+            'Zero'
         """
 
         name = ""
@@ -80,6 +132,18 @@ class AnalyticTypeElement(LatticePosetElement):
         with the analytic type of ``self`` for usage with latex.
 
         This is used for the latex representation of such spaces.
+
+        EXAMPLES::
+
+            sage: AT = AnalyticType()
+            sage: AT("mero").latex_space_name()
+            '\\tilde{M}'
+            sage: AT("weak").latex_space_name()
+            'M^!'
+            sage: AT(["quasi", "cusp"]).latex_space_name()
+            'QC'
+            sage: AT([]).latex_space_name()
+            'Z'
         """
 
         name = ""
@@ -101,6 +165,16 @@ class AnalyticTypeElement(LatticePosetElement):
     def analytic_name(self):
         r"""
         Return a string representation of the analytic type.
+
+            sage: AT = AnalyticType()
+            sage: AT(["quasi", "weak"]).analytic_name()
+            'quasi weakly holomorphic modular'
+            sage: AT(["quasi", "cusp"]).analytic_name()
+            'quasi cuspidal'
+            sage: AT(["quasi"]).analytic_name()
+            'zero'
+            sage: AT([]).analytic_name()
+            'zero'
         """
 
         name = ""
@@ -132,6 +206,17 @@ class AnalyticTypeElement(LatticePosetElement):
         OUTPUT:
 
         The new reduced analytic type.
+
+        EXAMPLES::
+    
+            sage: AT = AnalyticType()
+            sage: el = AT(["quasi", "cusp"])
+            sage: el2 = AT("holo")
+
+            sage: el.reduce_to(el2)
+            cuspidal
+            sage: el.reduce_to(el2) == el * el2
+            True
         """
 
         reduce_type = self.parent()(reduce_type)
@@ -150,6 +235,17 @@ class AnalyticTypeElement(LatticePosetElement):
         OUTPUT:
 
         The new extended analytic type.
+
+        EXAMPLES::
+    
+            sage: AT = AnalyticType()
+            sage: el = AT(["quasi", "cusp"])
+            sage: el2 = AT("holo")
+
+            sage: el.extend_by(el2)
+            quasi modular
+            sage: el.extend_by(el2) == el + el2
+            True
         """
 
         extend_type = self.parent()(extend_type)
@@ -162,6 +258,17 @@ class AnalyticTypeElement(LatticePosetElement):
         r"""
         Return an iterator of ``self`` which gives the basic analytic
         properties contained in ``self`` as strings.
+
+        EXAMPLES::
+
+        sage: el = AnalyticType()(["quasi", "weak"])
+        sage: prop_list =[prop for prop in el]
+        sage: prop_list
+        ['holo', 'cusp', 'quasi', 'weak']
+        sage: "mero" in el
+        False
+        sage: "cusp" in el
+        True
         """
 
         return iter([el.element for el in self.element])
@@ -183,6 +290,13 @@ class AnalyticType(FiniteLatticePoset):
         That's because ``self`` is supposed to be used as a Singleton.
         It initializes the FinitelatticePoset with the proper arguments
         by itself in ``self.__init__()``.
+
+        EXAMPLES::
+
+            sage: AT = AnalyticType()
+            sage: AT2 = AnalyticType()
+            sage: AT == AT2
+            True
         """
 
         return super(FinitePoset, cls).__classcall__(cls)
@@ -200,6 +314,62 @@ class AnalyticType(FiniteLatticePoset):
 
         In particular elements of ``self`` describe what basic analytic
         properties are contained/included in that element.
+
+        EXAMPLES::
+
+            sage: AT = AnalyticType()
+            sage: AT
+            Analytic Type
+            sage: isinstance(AT, FiniteLatticePoset)
+            True
+
+            sage: AT.is_lattice()
+            True
+            sage: AT.is_finite()
+            True
+            sage: AT.cardinality()
+            10
+            sage: AT.is_modular()
+            True
+            sage: AT.is_bounded()
+            True
+            sage: AT.is_distributive()
+            True
+            sage: AT.list()
+            [zero,
+             zero,
+             cuspidal,
+             modular,
+             weakly holomorphic modular,
+             quasi cuspidal,
+             quasi modular,
+             quasi weakly holomorphic modular,
+             meromorphic modular,
+             quasi meromorphic modular]
+            sage: len(AT.relations())
+            45
+            sage: AT.cover_relations()
+            [[zero, zero],
+             [zero, cuspidal],
+             [zero, quasi cuspidal],
+             [cuspidal, modular],
+             [cuspidal, quasi cuspidal],
+             [modular, weakly holomorphic modular],
+             [modular, quasi modular],
+             [weakly holomorphic modular, quasi weakly holomorphic modular],
+             [weakly holomorphic modular, meromorphic modular],
+             [quasi cuspidal, quasi modular],
+             [quasi modular, quasi weakly holomorphic modular],
+             [quasi weakly holomorphic modular, quasi meromorphic modular],
+             [meromorphic modular, quasi meromorphic modular]]
+            sage: AT.has_top()
+            True
+            sage: AT.has_bottom()
+            True
+            sage: AT.top()
+            quasi meromorphic modular
+            sage: AT.bottom()
+            zero
         """
 
         # We (arbitrarily) choose to model by inclusion instead of restriction
@@ -215,6 +385,11 @@ class AnalyticType(FiniteLatticePoset):
     def _repr_(self):
         r"""
         Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: AnalyticType()
+            Analytic Type
         """
 
         return "Analytic Type"
@@ -226,6 +401,12 @@ class AnalyticType(FiniteLatticePoset):
 
         If more than one argument is given it is called with
         the list of those arguments instead.
+
+        EXAMPLES::
+
+            sage: AT = AnalyticType()
+            sage: AT("holo", "quasi") == AT(["holo", "quasi"])
+            True
         """
 
         if len(args)>1:
@@ -250,6 +431,23 @@ class AnalyticType(FiniteLatticePoset):
 
         An element of ``self`` corresponding to ``element``
         (resp. containing all specified basic analytic properties).
+
+        EXAMPLES::
+
+            sage: AT = AnalyticType()
+            sage: AT("holo") == AT(["holo"])
+            True
+            sage: el = AT(["quasi", "holo"])
+            sage: el
+            quasi modular
+            sage: el == AT(("holo", "quasi"))
+            True
+            sage: el.parent() == AT
+            True
+            sage: isinstance(el, AnalyticTypeElement)
+            True
+            sage: el.element
+            {holo, cusp, quasi}
         """
         
         if type(element)==str:
@@ -268,3 +466,53 @@ class AnalyticType(FiniteLatticePoset):
         #    element = super(AnalyticType,self)._element_constructor_(element)
         #    res += element
         #return res
+
+    def base_poset(self):
+        r"""
+        Return the base poset from which everything of ``self``
+        was constructed.
+
+        EXAMPLES::
+
+            sage: AT = AnalyticType()
+            sage: P = AT.base_poset()
+            sage: P
+            Finite poset containing 5 elements
+            sage: isinstance(P, FinitePoset)
+            True
+
+            sage: P.is_lattice()
+            False
+            sage: P.is_finite()
+            True
+            sage: P.cardinality()
+            5
+            sage: P.is_bounded()
+            False
+            sage: P.list()
+            [quasi, cusp, holo, weak, mero]
+            
+            sage: len(P.relations())
+            11
+            sage: P.cover_relations()
+            [[cusp, holo], [holo, weak], [weak, mero]]
+            sage: P.has_top()
+            False
+            sage: P.has_bottom()
+            False
+        """
+
+        return self._base_poset
+
+    def lattice_poset(self):
+        r"""
+        Return the underlying lattice poset of ``self``.
+
+        EXAMPLES::
+
+            sage: AnalyticType().lattice_poset()
+            Finite lattice containing 10 elements
+        """
+
+        return FiniteLatticePoset(self._base_poset.order_ideals_lattice(), facade=False)
+                        
