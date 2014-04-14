@@ -55,6 +55,23 @@ def get_base_ring(ring, var_name="d"):
 
     If ``var_name`` (default: "d") is specified then this variable
     name is used for the polynomial ring.
+
+    EXAMPLES::
+
+        sage: get_base_ring(ZZ) == ZZ
+        True
+        sage: get_base_ring(QQ) == ZZ
+        True
+        sage: get_base_ring(PolynomialRing(CC, 'd')) == CC
+        True
+        sage: get_base_ring(PolynomialRing(QQ, 'd')) == ZZ
+        True
+        sage: get_base_ring(FractionField(PolynomialRing(CC, 'd'))) == CC
+        True
+        sage: get_base_ring(FractionField(PolynomialRing(QQ, 'd'))) == ZZ
+        True
+        sage: get_base_ring(PolynomialRing(QQ, 'x')) == PolynomialRing(QQ, 'x')
+        True
     """
 
     #from sage.rings.fraction_field import is_FractionField
@@ -81,6 +98,13 @@ def ConstantFormsSpaceFunctor(group):
     When determening a common parent between a ring
     and a forms ring or space this functor is first
     applied to the ring.
+
+    EXAMPLES::
+
+        sage: ConstantFormsSpaceFunctor(4) == FormsSpaceFunctor("holo", 4, 0, 1)
+        True
+        sage: ConstantFormsSpaceFunctor(4)
+        ModularFormsFunctor(n=4, k=0, ep=1)
     """
 
     return FormsSpaceFunctor("holo", group, QQ(0), ZZ(1))
@@ -114,13 +138,26 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
         OUTPUT:
  
         The construction functor for the corresponding forms sub space.
+
+        EXAMPLES::
+
+            sage: from space import ModularForms
+            sage: ambient_space = ModularForms(group=4, k=12, ep=1)
+            sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
+            sage: ambient_space_functor
+            ModularFormsFunctor(n=4, k=12, ep=1)
+            sage: el = ambient_space.gen(0).full_reduce()
+            sage: FormsSubSpaceFunctor(ambient_space_functor, [el])
+            FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=4, k=12, ep=1)
         """
 
         Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
         if not isinstance(ambient_space_functor, FormsSpaceFunctor):
             raise Exception("{} is not a FormsSpaceFunctor!".format(ambient_space_functor))
-        #self._basis_ring = 
-        #on call check if there is a coercion from self._basis_ring to R
+        # TODO: canonical parameters? Some checks?
+        # The basis should have an associated base ring
+        # self._basis_ring = ...
+        # on call check if there is a coercion from self._basis_ring to R
 
         self._ambient_space_functor = ambient_space_functor
         self._basis = basis
@@ -130,6 +167,32 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
         Return the corresponding subspace of the ambient space
         constructed by ``self._ambient_space`` with the basis ``self._basis``.
         If the ambient space is not a forms space the ambient space is returned.
+
+        EXAMPLES::
+
+            sage: from space import CuspForms
+            sage: ambient_space = CuspForms(group=4, k=12, ep=1)
+            sage: ambient_space_functor = FormsSpaceFunctor("cusp", group=4, k=12, ep=1)
+            sage: el = ambient_space.gen(0)
+            sage: F = FormsSubSpaceFunctor(ambient_space_functor, [el])
+            sage: F
+            FormsSubSpaceFunctor with 1 basis element for the CuspFormsFunctor(n=4, k=12, ep=1)
+
+            sage: F(BaseFacade(ZZ))
+            Subspace of dimension 1 of CuspForms(n=4, k=12, ep=1) over Integer Ring
+            sage: F(BaseFacade(CC))
+            Subspace of dimension 1 of CuspForms(n=4, k=12, ep=1) over Complex Field with 53 bits of precision
+            sage: F(CC)
+            ModularFormsRing(n=4) over Complex Field with 53 bits of precision
+
+            sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=0, ep=1)
+            sage: F = FormsSubSpaceFunctor(ambient_space_functor, [1])
+            sage: F
+            FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=4, k=0, ep=1)
+            sage: F(BaseFacade(ZZ))
+            Subspace of dimension 1 of ModularForms(n=4, k=0, ep=1) over Integer Ring
+            sage: F(CC)
+            Subspace of dimension 1 of ModularForms(n=4, k=0, ep=1) over Complex Field with 53 bits of precision
         """
 
         ambient_space = self._ambient_space_functor(R)
@@ -138,12 +201,22 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
         else:
             return ambient_space
 
-    def __repr__(self):
+    def __str__(self):
         r"""  
         Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from space import ModularForms
+            sage: ambient_space = ModularForms(group=4, k=12, ep=1)
+            sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
+            sage: FormsSubSpaceFunctor(ambient_space_functor, ambient_space.gens())
+            FormsSubSpaceFunctor with 2 basis elements for the ModularFormsFunctor(n=4, k=12, ep=1)
+            sage: FormsSubSpaceFunctor(ambient_space_functor, [ambient_space.gen(0)])
+            FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=4, k=12, ep=1)
         """
 
-        return "FormsSubSpaceFunctor (with basis) for the {}".format(self._ambient_space_functor)
+        return "FormsSubSpaceFunctor with {} basis {} for the {}".format(len(self._basis), 'elements' if len(self._basis) != 1 else 'element', self._ambient_space_functor)
 
     def merge(self, other):
         r"""
@@ -159,13 +232,41 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         If ``other`` is not a ``FormsSubSpaceFunctor`` then ``self``
         is merged as if it was its ambient space functor.
+
+
+        EXAMPLES::
+
+            sage: from space import ModularForms
+            sage: ambient_space = ModularForms(group=4, k=12, ep=1)
+            sage: ambient_space_functor1 = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
+            sage: ambient_space_functor2 = FormsSpaceFunctor("cusp", group=4, k=12, ep=1)
+            sage: ss_functor1 = FormsSubSpaceFunctor(ambient_space_functor1, [ambient_space.gen(0)])
+            sage: ss_functor2 = FormsSubSpaceFunctor(ambient_space_functor2, [ambient_space.gen(0)])
+            sage: ss_functor3 = FormsSubSpaceFunctor(ambient_space_functor2, [2*ambient_space.gen(0)])
+            sage: merged_ambient = ambient_space_functor1.merge(ambient_space_functor2)
+            sage: merged_ambient
+            ModularFormsFunctor(n=4, k=12, ep=1)
+            sage: functor4 = FormsSpaceFunctor(["quasi", "cusp"], group=4, k=10, ep=-1)
+
+            sage: ss_functor1.merge(ss_functor1) is ss_functor1
+            True
+            sage: ss_functor1.merge(ss_functor2)
+            FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=4, k=12, ep=1)
+            sage: ss_functor1.merge(ss_functor2) == FormsSubSpaceFunctor(merged_ambient, [ambient_space.gen(0)])
+            True
+            sage: ss_functor1.merge(ss_functor3) == merged_ambient
+            True
+            sage: ss_functor1.merge(ambient_space_functor2) == merged_ambient
+            True
+            sage: ss_functor1.merge(functor4)
+            QuasiModularFormsRingFunctor(n=4, red_hom=True)
         """
 
         if (self == other):
             return self
         elif isinstance(other, FormsSubSpaceFunctor):
             merged_ambient_space_functor = self._ambient_space_functor.merge(other._ambient_space_functor)
-            if isinstance(merged_ambient_space_functor, FormsSpace_abstract):
+            if isinstance(merged_ambient_space_functor, FormsSpaceFunctor):
                 if (self._basis == other._basis):
                     basis = self._basis
                     return FormsSubSpaceFunctor(merged_ambient_space_functor, basis)
@@ -182,6 +283,16 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
     def __eq__(self, other):
         r"""
         Compare ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: from space import ModularForms
+            sage: ambient_space = ModularForms(group=4, k=12, ep=1)
+            sage: ambient_space_functor1 = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
+            sage: ss_functor1 = FormsSubSpaceFunctor(ambient_space_functor1, [ambient_space.gen(0)])
+            sage: ss_functor2 = FormsSubSpaceFunctor(ambient_space_functor1, [ambient_space.gen(1)])
+            sage: ss_functor1 == ss_functor2
+            False
         """
 
         if    ( type(self)                  == type(other)\
@@ -229,6 +340,11 @@ class FormsSpaceFunctor(ConstructionFunctor):
         OUTPUT:
  
         The construction functor for the corresponding forms space/ring.
+
+        EXAMPLES::
+
+            sage: FormsSpaceFunctor(["holo", "weak"], group=4, k=0, ep=-1)
+            WeakModularFormsFunctor(n=4, k=0, ep=-1)
         """
 
         Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
@@ -243,6 +359,18 @@ class FormsSpaceFunctor(ConstructionFunctor):
         forms space with base ring ``get_base_ring(S)``.
         
         If not then we first merge the functor with the ConstantFormsSpaceFunctor.
+
+        EXAMPLES::
+
+            sage: F = FormsSpaceFunctor(["holo", "weak"], group=4, k=0, ep=-1)
+            sage: F(BaseFacade(ZZ))
+            WeakModularForms(n=4, k=0, ep=-1) over Integer Ring
+            sage: F(BaseFacade(CC))
+            WeakModularForms(n=4, k=0, ep=-1) over Complex Field with 53 bits of precision
+            sage: F(CC)
+            WeakModularFormsRing(n=4) over Complex Field with 53 bits of precision
+            sage: F(CC).has_reduce_hom()
+            True
         """
 
         if (isinstance(R, BaseFacade)):
@@ -253,9 +381,17 @@ class FormsSpaceFunctor(ConstructionFunctor):
             merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
             return merged_functor(R)
 
-    def __repr__(self):
+    def __str__(self):
         r"""  
         Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FormsSpaceFunctor(["cusp", "quasi"], group=5, k=10/3, ep=-1)
+            sage: str(F)
+            'QuasiCuspFormsFunctor(n=5, k=10/3, ep=-1)'
+            sage: F
+            QuasiCuspFormsFunctor(n=5, k=10/3, ep=-1)
         """
 
         return "{}FormsFunctor(n={}, k={}, ep={})".format(self._analytic_type.analytic_space_name(), self._group.n(), self._k, self._ep)
@@ -284,6 +420,26 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         Two ``FormsRingFunctors`` are merged to the corresponding
         (extended) ``FormsRingFunctor``.
+
+
+        EXAMPLES::
+
+            sage: functor1 = FormsSpaceFunctor("holo", group=5, k=0, ep=1)
+            sage: functor2 = FormsSpaceFunctor(["quasi", "cusp"], group=5, k=10/3, ep=-1)
+            sage: functor3 = FormsSpaceFunctor(["quasi", "mero"], group=5, k=0, ep=1)
+            sage: functor4 = FormsRingFunctor("cusp", group=5, red_hom=False)
+            sage: functor5 = FormsSpaceFunctor("holo", group=4, k=0, ep=1)
+
+            sage: functor1.merge(functor1) is functor1
+            True
+            sage: functor1.merge(functor5) is None
+            True
+            sage: functor1.merge(functor2)
+            QuasiModularFormsRingFunctor(n=5, red_hom=True)
+            sage: functor1.merge(functor3)
+            QuasiMeromorphicModularFormsFunctor(n=5, k=0, ep=1)
+            sage: functor1.merge(functor4)
+            ModularFormsRingFunctor(n=5)
         """
 
         if (self == other):
@@ -310,6 +466,13 @@ class FormsSpaceFunctor(ConstructionFunctor):
     def __eq__(self, other):
         r"""
         Compare ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: functor1 = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
+            sage: functor2 = FormsSpaceFunctor("holo", group=4, k=12, ep=-1)
+            sage: functor1 == functor2
+            False
         """
 
         if    ( type(self)          == type(other)\
@@ -358,6 +521,13 @@ class FormsRingFunctor(ConstructionFunctor):
         OUTPUT:
  
         The construction functor for the corresponding forms ring.
+
+        EXAMPLES::
+
+            sage: FormsRingFunctor(["quasi", "mero"], group=6, red_hom=False)
+            QuasiMeromorphicModularFormsRingFunctor(n=6)
+            sage: FormsRingFunctor(["quasi", "mero"], group=6, red_hom=True)
+            QuasiMeromorphicModularFormsRingFunctor(n=6, red_hom=True)
         """
 
         Functor.__init__(self, Rings(), Rings())
@@ -372,6 +542,18 @@ class FormsRingFunctor(ConstructionFunctor):
         forms ring with base ring ``get_base_ring(S)``.
         
         If not then we first merge the functor with the ConstantFormsSpaceFunctor.
+
+        EXAMPLES::
+
+            sage: F = FormsRingFunctor(["quasi", "mero"], group=6, red_hom=False)
+            sage: F(BaseFacade(ZZ))
+            QuasiMeromorphicModularFormsRing(n=6) over Integer Ring
+            sage: F(BaseFacade(CC))
+            QuasiMeromorphicModularFormsRing(n=6) over Complex Field with 53 bits of precision
+            sage: F(CC)
+            QuasiMeromorphicModularFormsRing(n=6) over Complex Field with 53 bits of precision
+            sage: F(CC).has_reduce_hom()
+            False
         """
 
         if (isinstance(R, BaseFacade)):
@@ -382,9 +564,16 @@ class FormsRingFunctor(ConstructionFunctor):
             merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
             return merged_functor(R)
 
-    def __repr__(self):
+    def __str__(self):
         r"""  
         Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: str(FormsRingFunctor(["quasi", "mero"], group=6, red_hom=True))
+            'QuasiMeromorphicModularFormsRingFunctor(n=6, red_hom=True)'
+            sage: FormsRingFunctor(["quasi", "mero"], group=6, red_hom=False)
+            QuasiMeromorphicModularFormsRingFunctor(n=6)
         """
 
         if (self._red_hom):
@@ -417,6 +606,23 @@ class FormsRingFunctor(ConstructionFunctor):
 
         Two ``FormsRingFunctors`` are merged to the corresponding
         (extended) ``FormsRingFunctor``.
+
+
+        EXAMPLES::
+
+            sage: functor1 = FormsRingFunctor("mero", group=6, red_hom=True)
+            sage: functor2 = FormsRingFunctor(["quasi", "cusp"], group=6, red_hom=False)
+            sage: functor3 = FormsSpaceFunctor("weak", group=6, k=0, ep=1)
+            sage: functor4 = FormsRingFunctor("mero", group=5, red_hom=True)
+
+            sage: functor1.merge(functor1) is functor1
+            True
+            sage: functor1.merge(functor4) is None
+            True
+            sage: functor1.merge(functor2)
+            QuasiMeromorphicModularFormsRingFunctor(n=6)
+            sage: functor1.merge(functor3)
+            MeromorphicModularFormsRingFunctor(n=6, red_hom=True)
         """
 
         if (self == other):
@@ -441,6 +647,13 @@ class FormsRingFunctor(ConstructionFunctor):
     def __eq__(self, other):
         r"""
         Compare ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: functor1 = FormsRingFunctor("holo", group=4, red_hom=True)
+            sage: functor2 = FormsRingFunctor("holo", group=4, red_hom=False)
+            sage: functor1 == functor2
+            False
         """
 
         if    ( type(self)          == type(other)\
@@ -482,6 +695,15 @@ class BaseFacade(Parent, UniqueRepresentation):
     def __init__(self, ring):
         r"""
         BaseFacade of ``ring`` (see above).
+
+        EXAMPLES::
+
+            sage: BaseFacade(ZZ)
+            BaseFacade(Integer Ring)
+            sage: ZZ.has_coerce_map_from(BaseFacade(ZZ))
+            True
+            sage: CC.has_coerce_map_from(BaseFacade(ZZ))
+            True
         """
 
         Parent.__init__(self, facade=ring, category=Rings())
@@ -492,6 +714,11 @@ class BaseFacade(Parent, UniqueRepresentation):
     def __repr__(self):
         r"""  
         Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: BaseFacade(ZZ)
+            BaseFacade(Integer Ring)
         """
 
         return "BaseFacade({})".format(self._ring)

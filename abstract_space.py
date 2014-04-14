@@ -407,7 +407,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         sage: from space import ModularForms
         sage: MF=ModularForms(k=12)
         sage: MF.subspace([MF.gen(1)]).construction()
-        (FormsSubSpaceFunctor (with basis) for the FormsSpaceFunctor, BaseFacade(Integer Ring))
+        (FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=3, k=12, ep=1), BaseFacade(Integer Ring))
         """
 
         from functors import FormsSubSpaceFunctor, FormsSpaceFunctor, BaseFacade

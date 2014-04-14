@@ -66,13 +66,12 @@ An implementation for sage:
 
   * Complete documentation of all functions and methods.
 
-  * Complete doctests except for:
-      * functors.py
+  * Complete doctests of all functions and methods, except for:
       * analytic_type.py
 
 
-Ideas:
-------
+Redesign/refactoring idea:
+--------------------------
 
   * Forms spaces/rings with reduced coefficient rings:
       * That would require a lot of work (sigh)...
@@ -84,3 +83,10 @@ Ideas:
         In particular: all functions which have a fix_d/set_d parameter
         would now query it from the space instead.
       * For arithmetic groups fix_d could be set by default.
+
+
+Future ideas (hard):
+--------------------
+
+  * Support for general triangle groups
+  * Support for "congruence" subgroups
