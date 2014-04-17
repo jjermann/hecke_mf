@@ -277,6 +277,64 @@ class AnalyticTypeElement(LatticePosetElement):
 class AnalyticType(FiniteLatticePoset):
     r"""
     Container for all possible analytic types of forms and/or spaces
+
+    The ``analytic type`` of forms spaces or rings describes all possible
+    occuring basic ``analytic properties`` of elements in the space/ring
+    (or more).
+
+    For ambient spaces/rings this means that all elements with those properties
+    (and the restrictions of the space/ring) are contained in the space/ring.
+
+    The analytic type of an element is the analytic type of its minimal
+    ambient space/ring.
+
+    The basic ``analytic properties`` are:
+
+        - ``quasi``  - Whether the element is quasi modular (and not modular)
+                       or modular.
+        - ``mero``   - ``meromorphic``: If the element is meromorphic
+                       and meromorphic at infinity.
+        - ``weak``   - ``weakly holomorphic``: If the element is holomorphic
+                       and meromorphic at infinity.
+        - ``holo``   - ``holomorphic``: If the element is holomorphic and
+                       holomorphic at infinity.
+        - ``cusp``   - ``cuspidal``: If the element additionally has a positive
+                       order at infinity.
+        - ``zero``   - Whether the element is the zero form or not.
+
+    For ring elements the property describes whether one of its homogeneous
+    components satisfies that property and the "union" of those properties
+    is returned as the ``analytic type``.
+
+    Similarly for quasi forms the property describes whether one of its
+    quasi components satisfies that property.
+
+    There is a (natural) partial order between the basic properties
+    (and analytic types) given by "inclusion". We name the analytic type
+    according to its maximal analytic properties.
+
+    EXAMPLES::
+
+    For n=3 the quasi form ``el = E6 - E2^3`` has the quasi components ``E6``
+    which is ``holomorphic`` and ``E2^3`` which is ``quasi holomorphic``.
+    So the analytic type of ``el`` is ``quasi holomorphic`` despite the fact
+    that the sum (``el``) describes a function which is zero at infinity.
+ 
+        sage: from space import QModularForms
+        sage: x,y,z,d = var("x,y,z,d")
+        sage: el = QModularForms(group=3, k=6, ep=-1)(y-z^3)
+        sage: el.analytic_type()
+        quasi modular
+
+    Similarly the type of the ring element ``el2 = E4/Delta - E6/Delta`` is
+    ``weakly holomorphic`` despite the fact that the sum (``el2``) describes
+    a function which is holomorphic at infinity.
+
+        sage: from graded_ring import WeakModularFormsRing
+        sage: x,y,z,d = var("x,y,z,d")
+        sage: el2 = WeakModularFormsRing(group=3)(x/(x^3-y^2)-y/(x^3-y^2))
+        sage: el2.analytic_type()
+        weakly holomorphic modular
     """
 
     Element = AnalyticTypeElement
