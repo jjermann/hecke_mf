@@ -28,7 +28,7 @@ class AnalyticTypeElement(LatticePosetElement):
     
     The class derives from LatticePosetElement.
     An analytic type element describes what basic analytic
-    properties are contained/included in ``self``.
+    properties are contained/included in it.
 
     EXAMPLES::
 
@@ -300,7 +300,8 @@ class AnalyticType(FiniteLatticePoset):
                        holomorphic at infinity.
         - ``cusp``   - ``cuspidal``: If the element additionally has a positive
                        order at infinity.
-        - ``zero``   - Whether the element is the zero form or not.
+
+    The ``zero`` elements/property have no analytic properties (or only ``quasi``).
 
     For ring elements the property describes whether one of its homogeneous
     components satisfies that property and the "union" of those properties
@@ -528,7 +529,8 @@ class AnalyticType(FiniteLatticePoset):
     def base_poset(self):
         r"""
         Return the base poset from which everything of ``self``
-        was constructed.
+        was constructed. Elements of the base poset correspond
+        to the basic ``analytic properties``.
 
         EXAMPLES::
 
