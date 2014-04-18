@@ -8,7 +8,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Jonas Jermann <jjermann2@gmail.com>
+#       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
