@@ -4,7 +4,7 @@ Hecke modular forms
 An implementation for sage:
 ---------------------------
 
-  * Trac ticket: http://trac.sagemath.org/ticket/16134
+  * Moved to sage: http://trac.sagemath.org/ticket/16134
 
   * At the moment: Only support for forms with respect to
     the full Hecke triangle group for `n=3, 4, 5, ...`
@@ -67,21 +67,6 @@ An implementation for sage:
   * Complete documentation of all functions and methods.
 
   * Complete doctests of all functions and methods.
-
-
-Redesign/refactoring idea:
---------------------------
-
-  * Forms spaces/rings with reduced coefficient rings:
-      * That would require quite a lot of work :(
-      * Initialize everything with an optional "fix_d" parameter
-        (maybe even with a "set_d" parameter).
-      * In case that parameter is set the corresponding rings are changed:
-        base ring, polynomial ring, fraction field, coefficient ring
-      * Make the MFSeriesConstructor part of the abstract ring?
-        In particular: all functions which have a fix_d/set_d parameter
-        would now query it from the space instead.
-      * For arithmetic groups fix_d could be set by default.
 
 
 Future ideas (hard):
